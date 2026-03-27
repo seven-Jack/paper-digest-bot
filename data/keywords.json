@@ -34,70 +34,70 @@
   },
   "keywords": {
     "isotope shifts": {
-      "weight": 1.0,
+      "weight": 0.98,
       "category": "abstract_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "hyperfine structure": {
-      "weight": 1.0,
+      "weight": 0.98,
       "category": "abstract_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "electron correlation": {
-      "weight": 1.0,
+      "weight": 0.98,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "relativistic calculation": {
-      "weight": 1.0,
+      "weight": 0.98,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "optical clock": {
-      "weight": 1.0,
+      "weight": 0.98,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "highly charged ions": {
-      "weight": 1.0,
+      "weight": 0.98,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "coupled-cluster": {
-      "weight": 1.0,
+      "weight": 0.98,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "polarizabilities": {
-      "weight": 1.0,
+      "weight": 0.98,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "polarizability": {
-      "weight": 1.0,
+      "weight": 0.98,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "dipole polarizability": {
-      "weight": 1.0,
+      "weight": 0.98,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
