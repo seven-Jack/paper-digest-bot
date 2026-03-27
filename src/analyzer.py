@@ -1,7 +1,7 @@
 """
 AI Analyzer - Multi-provider paper analysis.
 
-Supports: Gemini (Google), OpenAI, Claude (Anthropic), Groq, DeepSeek, Mistral, Together AI, OpenRouter.
+Supports: Gemini (Google), OpenAI, Claude (Anthropic), Groq, DeepSeek, Mistral, Together AI, OpenRouter, SiliconFlow, Zhipu.
 User selects provider in config; API key comes from environment.
 """
 
@@ -164,7 +164,7 @@ class GroqAnalyzer(AnalyzerBase):
 
     def __init__(self):
         self.api_key = os.environ.get("GROQ_API_KEY", "")
-        self.model = "llama-3.3-70b-versatile"  # Fast and capable
+        self.model = "llama-3.3-70b-versatile"
 
     def analyze(self, paper: dict, language: str = "en") -> str:
         prompt = self._build_prompt(paper, language)
@@ -308,7 +308,7 @@ class OpenRouterAnalyzer(AnalyzerBase):
 
     def __init__(self):
         self.api_key = os.environ.get("OPENROUTER_API_KEY", "")
-        self.model = "meta-llama/llama-3.3-70b-instruct"  # Good balance of speed/quality
+        self.model = "meta-llama/llama-3.3-70b-instruct"
 
     def analyze(self, paper: dict, language: str = "en") -> str:
         prompt = self._build_prompt(paper, language)
