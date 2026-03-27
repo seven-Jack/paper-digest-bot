@@ -1,10 +1,107 @@
 {
   "metadata": {
-    "created_at": "2026-03-27T09:26:12.236648+00:00",
+    "created_at": "2026-03-27T09:35:23.798946+00:00",
     "bootstrap_dois": [
-      "10.1103/PhysRevA.108.032804"
+      "10.1063/5.0261002",
+      "10.1063/5.0013109",
+      "10.1103/PhysRevA.102.062824",
+      "10.1103/PhysRevA.102.041101",
+      "10.1103/PhysRevA.99.022513",
+      "10.1103/PhysRevA.100.042508",
+      "10.1016/j.adt.2017.08.002",
+      "10.1103/PhysRevA.97.041403",
+      "10.1103/PhysRevA.97.022512",
+      "10.1103/PhysRevA.98.012513",
+      "10.1088/1361-6455/aab6df",
+      "10.1088/1674-1056/27/6/063101",
+      "10.1103/PhysRevA.94.062502",
+      "10.1103/PhysRevA.96.050502",
+      "10.1103/PhysRevA.93.033630",
+      "10.1103/PhysRevA.92.052515",
+      "10.1063/1.4913486",
+      "10.1038/srep13927",
+      "10.1103/PhysRevE.92.012504",
+      "10.1103/PhysRevE.89.012405",
+      "10.1103/PhysRevA.88.052518",
+      "10.1103/PhysRevA.87.063630",
+      "10.1103/PhysRevA.86.023628",
+      "10.1063/1.3662939",
+      "10.1016/j.jcrysgro.2011.09.022",
+      "10.1016/j.jcrysgro.2010.10.129",
+      "10.1103/PhysRevA.96.033402"
     ],
     "version": "1.0"
   },
-  "keywords": {}
+  "keywords": {
+    "isotope shifts": {
+      "weight": 1.0,
+      "category": "abstract_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "hyperfine structure": {
+      "weight": 1.0,
+      "category": "abstract_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "electron correlation": {
+      "weight": 1.0,
+      "category": "title_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "relativistic calculation": {
+      "weight": 1.0,
+      "category": "title_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "optical clock": {
+      "weight": 1.0,
+      "category": "title_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "highly charged ions": {
+      "weight": 1.0,
+      "category": "title_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "coupled-cluster": {
+      "weight": 1.0,
+      "category": "title_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "polarizabilities": {
+      "weight": 1.0,
+      "category": "title_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "polarizability": {
+      "weight": 1.0,
+      "category": "title_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "dipole polarizability": {
+      "weight": 1.0,
+      "category": "title_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    }
+  }
 }
