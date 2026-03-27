@@ -8,10 +8,17 @@ on:
         required: true
         type: choice
         options:
+          - groq
+          - deepseek
           - gemini
           - openai
           - claude
-        default: gemini
+          - mistral
+          - together
+          - openrouter
+          - siliconflow
+          - zhipu
+        default: groq
       language:
         description: 'Email language'
         required: true
@@ -25,6 +32,16 @@ on:
         required: false
         type: string
         default: '20'
+      days_back:
+        description: 'Days to look back for papers'
+        required: false
+        type: choice
+        options:
+          - '2'
+          - '7'
+          - '14'
+          - '30'
+        default: '7'
       schedule_hour_utc:
         description: 'Send time (UTC hour, 0=08:00 Beijing)'
         required: true
@@ -64,13 +81,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6  # ✅ 更新
+        uses: actions/checkout@v4
 
       - name: Generate config.yaml
         env:
           INPUT_PROVIDER: ${{ inputs.ai_provider }}
           INPUT_LANG: ${{ inputs.language }}
           INPUT_MAX: ${{ inputs.max_papers }}
+          INPUT_DAYS: ${{ inputs.days_back }}
           INPUT_ARXIV: ${{ inputs.arxiv_categories }}
           INPUT_APS: ${{ inputs.aps_journals }}
           INPUT_NATURE: ${{ inputs.enable_nature }}
@@ -80,9 +98,10 @@ jobs:
           import os
           from datetime import datetime, timezone
 
-          provider = os.environ.get("INPUT_PROVIDER", "gemini")
+          provider = os.environ.get("INPUT_PROVIDER", "groq")
           lang = os.environ.get("INPUT_LANG", "zh")
           max_papers = os.environ.get("INPUT_MAX", "20")
+          days_back = os.environ.get("INPUT_DAYS", "7")
           arxiv_cats = [c.strip() for c in os.environ.get("INPUT_ARXIV", "").split(",") if c.strip()]
           aps_journals = [j.strip() for j in os.environ.get("INPUT_APS", "").split(",") if j.strip()]
           enable_nature = os.environ.get("INPUT_NATURE", "false").lower() == "true"
@@ -95,6 +114,9 @@ jobs:
           lines.append(f"# Auto-generated on {today}")
           lines.append(f"")
           lines.append(f"ai_provider: {provider}")
+          lines.append(f"")
+          lines.append(f"fetch:")
+          lines.append(f"  days_back: {days_back}")
           lines.append(f"")
           lines.append(f"email:")
           lines.append(f"  language: {lang}")
@@ -155,11 +177,29 @@ jobs:
           git push
 
       - name: Print next steps
+        env:
+          INPUT_PROVIDER: ${{ inputs.ai_provider }}
         run: |
           echo ""
           echo "============================================="
           echo "  ✅ config.yaml generated successfully!"
           echo "============================================="
+          echo ""
+          echo "  AI Provider: ${INPUT_PROVIDER}"
+          echo ""
+          echo "  Required Secret for ${INPUT_PROVIDER}:"
+          case "${INPUT_PROVIDER}" in
+            groq) echo "    GROQ_API_KEY (https://console.groq.com/keys)" ;;
+            deepseek) echo "    DEEPSEEK_API_KEY (https://platform.deepseek.com/)" ;;
+            gemini) echo "    GEMINI_API_KEY (https://aistudio.google.com/apikey)" ;;
+            openai) echo "    OPENAI_API_KEY (https://platform.openai.com/api-keys)" ;;
+            claude) echo "    ANTHROPIC_API_KEY (https://console.anthropic.com/)" ;;
+            mistral) echo "    MISTRAL_API_KEY (https://console.mistral.ai/)" ;;
+            together) echo "    TOGETHER_API_KEY (https://api.together.xyz/)" ;;
+            openrouter) echo "    OPENROUTER_API_KEY (https://openrouter.ai/keys)" ;;
+            siliconflow) echo "    SILICONFLOW_API_KEY (https://cloud.siliconflow.cn/)" ;;
+            zhipu) echo "    ZHIPU_API_KEY (https://open.bigmodel.cn/)" ;;
+          esac
           echo ""
           echo "  Next steps:"
           echo "  1. Make sure GitHub Secrets are set"
