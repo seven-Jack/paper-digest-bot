@@ -1,52 +1,130 @@
-# Paper Digest Bot - Configuration Template
-# Copy this file to config.yaml and customize
+# Paper Digest Bot Configuration
+# Copy this file to config.yaml and customize for your needs
 
-# === AI Provider ===
-# Options: gemini, openai, claude
+# AI Provider for paper analysis
+# Options: groq, deepseek, gemini, openai, claude, mistral, together, openrouter, siliconflow, zhipu
 ai_provider: groq
 
-# === Email Settings ===
-email:
-  language: zh          # zh = Chinese, en = English
-  max_papers: 20        # Max papers per digest email
-  schedule_utc: "00:00" # UTC time (00:00 UTC = 08:00 Beijing)
+# Fetch settings
+fetch:
+  days_back: 7              # How many days back to fetch papers (2, 7, 14, 30)
+  max_results_per_source: 100  # Max papers to fetch per source
 
-# === Journal Sources ===
-# Enable/disable specific sources
+# Email settings
+email:
+  language: zh              # zh = Chinese, en = English
+  max_papers: 20            # Max papers to include in digest email
+
+# Paper sources - enable the ones you need
 sources:
+  # === Preprint Servers ===
+  
   arxiv:
     enabled: true
     categories:
-      - physics.atom-ph
-      - quant-ph
-      - physics.comp-ph
+      - physics.atom-ph     # Atomic Physics
+      - quant-ph            # Quantum Physics
+      # - cond-mat.mes-hall # Mesoscale and Nanoscale Physics
+      # - cond-mat.mtrl-sci # Materials Science
+      # - cond-mat.str-el   # Strongly Correlated Electrons
+      # - physics.optics    # Optics
+      # - cs.AI             # Artificial Intelligence
+      # - cs.LG             # Machine Learning
+      # - cs.CL             # Computation and Language
+      # Full list: https://arxiv.org/category_taxonomy
+
+  biorxiv:
+    enabled: false
+    servers:
+      - biorxiv             # Biology preprints
+      - medrxiv             # Medical preprints
+    subjects:               # Optional: filter by subject
+      # - neuroscience
+      # - biophysics
+      # - genomics
+
+  # === Journal Publishers ===
+  
   aps:
     enabled: true
     journals:
-      - prl    # Physical Review Letters
-      - pra    # Physical Review A
-      - prx    # Physical Review X
-  nature:
-    enabled: true
-    journals:
-      - nature
-      - nphys  # Nature Physics
-  science:
-    enabled: true
-    journals:
-      - science
-      - sciadv  # Science Advances
+      - prl                 # Physical Review Letters
+      - pra                 # Physical Review A
+      # - prb               # Physical Review B
+      # - prc               # Physical Review C  
+      # - prd               # Physical Review D
+      # - pre               # Physical Review E
+      # - prx               # Physical Review X
+      # - prresearch        # Physical Review Research
+      # - rmp               # Reviews of Modern Physics
 
-# === Weight System ===
+  nature:
+    enabled: false
+    journals:
+      - nature              # Nature
+      - nphys               # Nature Physics
+      # - nchem             # Nature Chemistry
+      # - nmat              # Nature Materials
+      # - nnano             # Nature Nanotechnology
+      # - ncomms            # Nature Communications
+
+  science:
+    enabled: false
+    journals:
+      - science             # Science
+      - sciadv              # Science Advances
+
+  # === Large Aggregators (200M+ papers) ===
+  
+  semantic_scholar:
+    enabled: false
+    fields:                 # Fields of study
+      - Physics
+      - Computer Science
+    keywords:               # Search keywords
+      - quantum computing
+      - machine learning
+    # Note: Set SEMANTIC_SCHOLAR_API_KEY for higher rate limits
+
+  openalex:
+    enabled: false
+    concepts:               # OpenAlex concept names
+      - quantum physics
+      - atomic physics
+      - machine learning
+    keywords:               # Free-text search
+      - ultracold atoms
+      - optical lattice
+    # Note: Set OPENALEX_EMAIL for polite pool (higher rate limits)
+
+  crossref:
+    enabled: false
+    keywords:
+      - quantum computing
+      - superconducting qubit
+    journals:               # Filter by journal ISSN
+      # - 0028-0836        # Nature
+      # - 0036-8075        # Science
+    # Note: Set CROSSREF_EMAIL for polite pool
+
+  # === Biomedical ===
+  
+  pubmed:
+    enabled: false
+    keywords:
+      - CRISPR
+      - gene therapy
+    mesh_terms:             # MeSH controlled vocabulary
+      - Quantum Theory
+      - Nanotechnology
+    # Note: Set PUBMED_API_KEY and PUBMED_EMAIL for higher rate limits
+
+# Keyword weighting system
 weights:
-  # Vote values for 3-tier system
   vote_values:
     not_interested: -2
     neutral: 0
     very_relevant: 3
-  # Weight decay per day for unvoted papers
-  daily_decay: 0.02
-  # Minimum weight before keyword is deactivated
-  min_threshold: 0.1
-  # Initial weight for new keywords from DOI bootstrap
-  initial_weight: 1.0
+  daily_decay: 0.02         # Weight lost per day without votes
+  min_threshold: 0.1        # Keywords below this are deactivated
+  initial_weight: 1.0       # Starting weight for new keywords
