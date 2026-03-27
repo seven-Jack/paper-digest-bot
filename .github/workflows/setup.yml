@@ -150,7 +150,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "Paper Digest Bot"
-          git add config.yaml .github/workflows/daily_digest.yml
+          git add -f config.yaml .github/workflows/daily_digest.yml
           git diff --staged --quiet || git commit -m "setup: generate config.yaml [skip ci]"
           git push
 
