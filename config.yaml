@@ -22,12 +22,12 @@ sources:
       - prl
       - pra
   nature:
-    enabled: false
+    enabled: true
     journals:
       - nature
       - nphys
   science:
-    enabled: false
+    enabled: true
     journals:
       - science
       - sciadv
