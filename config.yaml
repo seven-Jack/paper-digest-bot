@@ -1,7 +1,7 @@
 # Paper Digest Bot Configuration
 # 修改版 - 支持早期宽泛检索模式
 
-ai_provider: gemini
+ai_provider: groq
 
 # ============================================
 # 早期调试模式配置
