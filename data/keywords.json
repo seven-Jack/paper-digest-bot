@@ -8,21 +8,21 @@
   },
   "keywords": {
     "polarizabilities": {
-      "weight": 1.0,
+      "weight": 0.98,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "field shift": {
-      "weight": 1.0,
+      "weight": 0.98,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "relativistic calculation": {
-      "weight": 1.0,
+      "weight": 0.98,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
