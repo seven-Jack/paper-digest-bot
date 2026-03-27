@@ -1,0 +1,49 @@
+name: 🗑️ Clear Paper Cache
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  clear:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      
+      - name: Clear paper cache
+        run: |
+          echo "📋 Current cache status:"
+          if [ -f data/paper_cache.json ]; then
+            echo "  Cache file exists"
+            CACHE_SIZE=$(wc -c < data/paper_cache.json)
+            echo "  Size: ${CACHE_SIZE} bytes"
+          else
+            echo "  Cache file does not exist"
+          fi
+          
+          echo ""
+          echo "🗑️  Clearing paper_cache.json..."
+          echo '{}' > data/paper_cache.json
+          
+          echo "✅ Cache cleared! All papers will be considered 'new' in the next digest."
+      
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "Paper Digest Bot"
+          git add data/paper_cache.json
+          git commit -m "chore: clear paper cache for fresh digest [skip ci]"
+          git push
+          
+          echo ""
+          echo "============================================="
+          echo "  ✅ Cache cleared and committed!"
+          echo "============================================="
+          echo ""
+          echo "  Next step:"
+          echo "  Run 'Daily Paper Digest' to send an email"
+          echo "  with all available papers."
+          echo "============================================="
