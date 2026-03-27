@@ -4,11 +4,11 @@
 ai_provider: groq
 
 fetch:
-  days_back: 7 
+  days_back: 7
 
 email:
   language: zh
-  max_papers: 30
+  max_papers: 20
 
 sources:
   arxiv:
@@ -21,18 +21,13 @@ sources:
     journals:
       - prl
       - pra
-      - prb
-      - prc
-      - prr
-      - prx
-      - prd
   nature:
-    enabled: true
+    enabled: false
     journals:
       - nature
       - nphys
   science:
-    enabled: true
+    enabled: false
     journals:
       - science
       - sciadv
