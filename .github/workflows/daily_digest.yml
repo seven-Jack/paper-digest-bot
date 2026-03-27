@@ -1,29 +1,23 @@
 name: Daily Paper Digest
-
 on:
   schedule:
     # Run at 00:00 UTC = 08:00 Beijing time
     - cron: '0 0 * * *'
   workflow_dispatch:  # Allow manual trigger
-
 permissions:
   contents: write  # Needed to commit cache updates
-
 jobs:
   digest:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@v6  # ✅ 更新到 v6
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6  # ✅ 更新到 v6
         with:
           python-version: '3.11'
-
       - name: Install dependencies
         run: pip install -r requirements.txt
-
       - name: Run paper digest
         env:
           # AI Provider (set the one matching your config)
@@ -39,7 +33,6 @@ jobs:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: python main.py --config config.yaml
-
       - name: Commit cache updates
         run: |
           git config --local user.email "action@github.com"
