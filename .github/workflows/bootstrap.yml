@@ -1,5 +1,4 @@
 name: Bootstrap Keywords from DOIs
-
 on:
   workflow_dispatch:
     inputs:
@@ -12,25 +11,20 @@ on:
         required: false
         type: boolean
         default: false
-
 permissions:
   contents: write
-
 jobs:
   bootstrap:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@v6  # ✅ 更新到 v6
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6  # ✅ 更新到 v6
         with:
           python-version: '3.11'
-
       - name: Install dependencies
         run: pip install -r requirements.txt
-
       - name: Run bootstrap
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -46,7 +40,6 @@ jobs:
             fi
           fi
           python bootstrap.py --dois "${{ inputs.dois }}" $AI_FLAG
-
       - name: Commit keywords
         run: |
           git config --local user.email "action@github.com"
