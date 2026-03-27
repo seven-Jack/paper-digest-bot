@@ -7,7 +7,7 @@
 ## Features
 
 - **Multi-source fetching** — arXiv, APS (PRL/PRA/PRX), Nature, Science
-- **AI-powered analysis** — Gemini / OpenAI / Claude summarize each paper in your language
+- **AI-powered analysis** — 10+ AI providers: Gemini, OpenAI, Claude, Groq, DeepSeek, Mistral, and more
 - **Adaptive keyword weights** — Vote on papers to teach the system your interests
 - **DOI bootstrapping** — Provide reference papers to auto-extract initial keywords
 - **Email digest** — Beautiful HTML email with inline vote buttons
@@ -19,7 +19,7 @@
 ```
 Reference DOIs → Extract Keywords → Daily Fetch → Filter by Weights
                                                         ↓
-                                              AI Analysis (Gemini/GPT/Claude)
+                                              AI Analysis (Gemini/GPT/Claude/Groq/...)
                                                         ↓
                                               HTML Email with Vote Links
                                                         ↓
@@ -35,7 +35,7 @@ Papers you mark as "very relevant" boost related keyword weights. Papers marked 
 2. **Set Secrets** — Settings → Secrets and variables → Actions, add:
    | Secret | Description |
    |--------|-------------|
-   | `GEMINI_API_KEY` | Google AI API key ([get free key](https://aistudio.google.com/apikey)) |
+   | `GROQ_API_KEY` | Groq API key (recommended, [get free key](https://console.groq.com/keys)) |
    | `EMAIL_ADDRESS` | Your Gmail address |
    | `EMAIL_PASSWORD` | Gmail App Password ([create one](https://myaccount.google.com/apppasswords)) |
 
@@ -59,7 +59,10 @@ Settings → Pages → Source: `main` / `/(root)` → Save
 ### config.yaml
 
 ```yaml
-ai_provider: gemini          # gemini / openai / claude
+ai_provider: groq            # See AI Providers table below
+
+fetch:
+  days_back: 7               # How many days back to fetch papers (default: 2)
 
 email:
   language: zh               # zh = Chinese, en = English
@@ -84,11 +87,20 @@ weights:
 
 ### AI Providers
 
-| Provider | Secret Name | Free Tier | Get Key |
-|----------|------------|-----------|---------|
-| Gemini | `GEMINI_API_KEY` | 15 req/min | [AI Studio](https://aistudio.google.com/apikey) |
-| OpenAI | `OPENAI_API_KEY` | Paid only | [Platform](https://platform.openai.com/api-keys) |
-| Claude | `ANTHROPIC_API_KEY` | Paid only | [Console](https://console.anthropic.com/) |
+| Provider | Secret Name | Free Tier | Speed | Get Key |
+|----------|-------------|-----------|-------|---------|
+| **Groq** | `GROQ_API_KEY` | ✅ Generous | 🚀 Very Fast | [console.groq.com](https://console.groq.com/keys) |
+| **DeepSeek** | `DEEPSEEK_API_KEY` | ✅ Very Cheap | ⚡ Fast | [platform.deepseek.com](https://platform.deepseek.com/) |
+| **Gemini** | `GEMINI_API_KEY` | ✅ 15 req/min | ⚡ Fast | [aistudio.google.com](https://aistudio.google.com/apikey) |
+| **Mistral** | `MISTRAL_API_KEY` | ✅ Free tier | ⚡ Fast | [console.mistral.ai](https://console.mistral.ai/) |
+| **OpenAI** | `OPENAI_API_KEY` | ❌ Paid | ⚡ Fast | [platform.openai.com](https://platform.openai.com/api-keys) |
+| **Claude** | `ANTHROPIC_API_KEY` | ❌ Paid | ⚡ Fast | [console.anthropic.com](https://console.anthropic.com/) |
+| **Together** | `TOGETHER_API_KEY` | ✅ Free tier | ⚡ Fast | [api.together.xyz](https://api.together.xyz/) |
+| **OpenRouter** | `OPENROUTER_API_KEY` | ✅ Free tier | ⚡ Fast | [openrouter.ai](https://openrouter.ai/keys) |
+| **SiliconFlow** | `SILICONFLOW_API_KEY` | ✅ Free tier | ⚡ Fast (CN) | [siliconflow.cn](https://cloud.siliconflow.cn/) |
+| **Zhipu (GLM)** | `ZHIPU_API_KEY` | ✅ Free tier | ⚡ Fast (CN) | [open.bigmodel.cn](https://open.bigmodel.cn/) |
+
+> 💡 **Recommendation**: **Groq** or **DeepSeek** are recommended for free users. They have generous free tiers and fast inference.
 
 ## Voting System
 
