@@ -1,0 +1,54 @@
+{
+  "metadata": {
+    "created_at": "2026-03-27T07:38:57.767109+00:00",
+    "bootstrap_dois": [
+      "10.1103/PhysRevA.111.053107",
+      "10.1103/ntv1-8d5w"
+    ],
+    "version": "1.0"
+  },
+  "keywords": {
+    "coupled-cluster": {
+      "weight": 1.0,
+      "category": "title_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "optical clock": {
+      "weight": 1.0,
+      "category": "title_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "transition energies": {
+      "weight": 1.0,
+      "category": "title_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "polarizabilities": {
+      "weight": 1.0,
+      "category": "title_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "field shift": {
+      "weight": 1.0,
+      "category": "title_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "relativistic calculation": {
+      "weight": 1.0,
+      "category": "title_term",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    }
+  }
+}
