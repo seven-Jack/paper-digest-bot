@@ -1,0 +1,39 @@
+# Paper Digest Bot Configuration
+# Auto-generated on 2026-03-27
+
+ai_provider: gemini
+
+email:
+  language: zh
+  max_papers: 20
+
+sources:
+  arxiv:
+    enabled: true
+    categories:
+      - physics.atom-ph
+      - quant-ph
+  aps:
+    enabled: true
+    journals:
+      - prl
+      - pra
+  nature:
+    enabled: true
+    journals:
+      - nature
+      - nphys
+  science:
+    enabled: true
+    journals:
+      - science
+      - sciadv
+
+weights:
+  vote_values:
+    not_interested: -2
+    neutral: 0
+    very_relevant: 3
+  daily_decay: 0.02
+  min_threshold: 0.1
+  initial_weight: 1.0
