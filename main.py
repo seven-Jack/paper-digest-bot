@@ -2,6 +2,8 @@
 """
 Paper Digest Bot - Daily academic paper digest with AI analysis.
 Main entry point for the GitHub Actions workflow.
+
+修改版：支持早期宽泛检索模式 (bootstrap mode)
 """
 
 import argparse
@@ -61,6 +63,7 @@ def fetch_papers(config: dict) -> list[dict]:
     # 从配置中读取 days_back，默认为 2 天
     days_back = config.get("fetch", {}).get("days_back", 2)
     max_results = config.get("fetch", {}).get("max_results_per_source", 100)
+    
     logger.info(f"Fetching papers from the last {days_back} days...")
 
     # arXiv
@@ -144,17 +147,76 @@ def fetch_papers(config: dict) -> list[dict]:
     return papers
 
 
-def filter_and_rank(papers: list[dict], weight_manager: WeightManager) -> list[dict]:
-    """Filter papers by keyword relevance and rank by weight score."""
+def is_bootstrap_mode(config: dict, data_dir: str) -> bool:
+    """
+    检查是否处于 bootstrap（宽泛检索）模式。
+    
+    Bootstrap 模式在以下情况下启用：
+    1. config 中 bootstrap.enabled = true
+    2. 且投票次数未达到 auto_disable_after_votes 阈值
+    """
+    bootstrap_config = config.get("bootstrap", {})
+    
+    if not bootstrap_config.get("enabled", False):
+        return False
+    
+    # 检查投票次数
+    keywords_path = os.path.join(data_dir, "keywords.json")
+    if os.path.exists(keywords_path):
+        with open(keywords_path, "r") as f:
+            keywords_data = json.load(f)
+        
+        total_votes = keywords_data.get("stats", {}).get("total_votes", 0)
+        threshold = bootstrap_config.get("auto_disable_after_votes", 100)
+        
+        if total_votes >= threshold:
+            logger.info(f"Bootstrap mode auto-disabled: {total_votes} votes >= {threshold} threshold")
+            return False
+    
+    return True
+
+
+def filter_and_rank(papers: list[dict], weight_manager: WeightManager, 
+                    config: dict, data_dir: str) -> list[dict]:
+    """
+    Filter papers by keyword relevance and rank by weight score.
+    
+    在 bootstrap 模式下，使用更宽松的过滤策略。
+    """
+    bootstrap_mode = is_bootstrap_mode(config, data_dir)
+    bootstrap_config = config.get("bootstrap", {})
+    
+    if bootstrap_mode:
+        min_threshold = bootstrap_config.get("min_score_threshold", 0.0)
+        logger.info(f"🚀 Bootstrap mode ACTIVE - using relaxed threshold: {min_threshold}")
+    else:
+        min_threshold = config.get("weights", {}).get("min_threshold", 0.1)
+        logger.info(f"📊 Normal mode - using standard threshold: {min_threshold}")
+    
     scored = []
+    unscored = []  # Bootstrap 模式下，无匹配关键词的论文也保留
+    
     for paper in papers:
         score, matched_keywords = weight_manager.score_paper(paper)
-        if score > 0:
+        
+        if score > min_threshold:
             paper["relevance_score"] = score
             paper["matched_keywords"] = matched_keywords
             scored.append(paper)
-
+        elif bootstrap_mode and score == 0:
+            # Bootstrap 模式：给未匹配的论文一个基础分数
+            paper["relevance_score"] = 0.1  # 基础分数
+            paper["matched_keywords"] = ["[new/unscored]"]
+            unscored.append(paper)
+    
+    # 按分数排序
     scored.sort(key=lambda p: p["relevance_score"], reverse=True)
+    
+    # Bootstrap 模式下，将未评分的论文附加到末尾
+    if bootstrap_mode and unscored:
+        logger.info(f"Bootstrap mode: including {len(unscored)} unscored papers")
+        scored.extend(unscored)
+    
     logger.info(f"Papers after filtering: {len(scored)}")
     return scored
 
@@ -173,6 +235,7 @@ def deduplicate(papers: list[dict], cache_path: str) -> list[dict]:
     # Update cache with new paper IDs
     for p in new_papers:
         sent_ids.add(p.get("id", ""))
+
     # Keep only last 30 days of IDs (approx 600 papers)
     cache["sent_ids"] = list(sent_ids)[-2000:]
     cache["last_updated"] = datetime.now(timezone.utc).isoformat()
@@ -215,6 +278,7 @@ def main():
 
     # Load configuration
     config = load_config(args.config)
+
     data_dir = os.path.join(os.path.dirname(__file__), "data")
     os.makedirs(data_dir, exist_ok=True)
 
@@ -223,10 +287,17 @@ def main():
     weight_manager = WeightManager(keywords_path)
     weight_manager.apply_daily_decay(config.get("weights", {}))
 
+    # 检查并显示当前模式
+    if is_bootstrap_mode(config, data_dir):
+        logger.info("=" * 50)
+        logger.info("🚀 BOOTSTRAP MODE: 宽泛检索已启用")
+        logger.info("   所有论文将被推送，请通过投票训练系统")
+        logger.info("=" * 50)
+
     # Fetch → Filter → Deduplicate → Analyze → Email
     papers = fetch_papers(config)
-    papers = filter_and_rank(papers, weight_manager)
-
+    papers = filter_and_rank(papers, weight_manager, config, data_dir)
+    
     max_papers = config.get("email", {}).get("max_papers", 20)
     papers = papers[:max_papers]
 
@@ -265,6 +336,7 @@ def main():
         if not recipient:
             logger.error("EMAIL_ADDRESS not set. Cannot send email.")
             sys.exit(1)
+
         send_email(subject, html_body, recipient)
         logger.info(f"Digest email sent to {recipient}")
 

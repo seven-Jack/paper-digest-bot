@@ -1,42 +1,131 @@
 # Paper Digest Bot Configuration
-# Auto-generated on 2026-03-27
+# 修改版 - 支持早期宽泛检索模式
 
-ai_provider: groq
+ai_provider: gemini
 
+# ============================================
+# 早期调试模式配置
+# ============================================
+bootstrap:
+  enabled: true                    # 启用宽泛检索模式
+  min_score_threshold: 0.0         # 初期阈值设为0，所有论文都能通过
+  auto_disable_after_votes: 100    # 累计100次投票后自动切换到正常模式
+  # 当 enabled: false 时，使用 weights.min_threshold 进行过滤
+
+# ============================================
+# 论文抓取配置
+# ============================================
 fetch:
-  days_back: 7
+  days_back: 2                     # 抓取最近几天的论文
+  max_results_per_source: 50       # 每个数据源最多抓取数量
 
+# ============================================
+# 邮件配置
+# ============================================
 email:
   language: zh
-  max_papers: 20
+  max_papers: 40                   # 每日推送上限（适配30-50篇目标）
 
+# ============================================
+# 数据源配置
+# ============================================
 sources:
+  # -----------------------------------------
+  # arXiv - 扩展量子/原子物理相关分类
+  # -----------------------------------------
   arxiv:
     enabled: true
     categories:
-      - physics.atom-ph
-      - quant-ph
+      # 核心领域
+      - physics.atom-ph            # 原子物理
+      - quant-ph                   # 量子物理
+      # 扩展领域
+      - physics.optics             # 光学（与原子物理密切相关）
+      - cond-mat.quant-gas         # 量子气体
+      - physics.chem-ph            # 化学物理
+      - cond-mat.mes-hall          # 介观与量子霍尔效应
+      - cond-mat.supr-con          # 超导（量子计算相关）
+
+  # -----------------------------------------
+  # APS - Physical Review 系列
+  # -----------------------------------------
   aps:
     enabled: true
     journals:
-      - prl
-      - pra
+      - prl                        # Physical Review Letters
+      - pra                        # Physical Review A (原子/量子)
+      - prx                        # Physical Review X
+      - prxquantum                 # PRX Quantum
+
+  # -----------------------------------------
+  # Nature 系列
+  # -----------------------------------------
   nature:
     enabled: true
     journals:
       - nature
-      - nphys
+      - nphys                      # Nature Physics
+      - ncomms                     # Nature Communications
+
+  # -----------------------------------------
+  # Science 系列
+  # -----------------------------------------
   science:
     enabled: true
     journals:
       - science
-      - sciadv
+      - sciadv                     # Science Advances
 
+  # -----------------------------------------
+  # Semantic Scholar - 新增
+  # 综合学术搜索引擎，覆盖面广
+  # -----------------------------------------
+  semantic_scholar:
+    enabled: true
+    fields:
+      - Physics
+      - Materials Science
+    keywords:
+      - quantum
+      - atomic physics
+      - ultracold atoms
+      - quantum computing
+      - quantum simulation
+      - optical lattice
+      - Bose-Einstein condensate
+      - quantum entanglement
+
+  # -----------------------------------------
+  # OpenAlex - 新增
+  # 免费开放学术图谱，数据量大
+  # -----------------------------------------
+  openalex:
+    enabled: true
+    concepts:
+      - "C62520636"                # Quantum mechanics
+      - "C121332964"               # Atomic physics
+      - "C119857082"               # Condensed matter physics
+    keywords:
+      - quantum
+      - atomic
+      - ultracold
+      - optical lattice
+
+# ============================================
+# 权重系统配置
+# ============================================
 weights:
+  # 投票分数变化值
   vote_values:
-    not_interested: -2
-    neutral: 0
-    very_relevant: 3
-  daily_decay: 0.02
-  min_threshold: 0.1
-  initial_weight: 1.0
+    not_interested: -0.3           # 不感兴趣：降低权重
+    neutral: 0                     # 中立：不变
+    very_relevant: 0.5             # 非常相关：提升权重
+
+  # 权重衰减与阈值
+  daily_decay: 0.01                # 每日衰减（初期设低，减少自动淘汰）
+  min_threshold: 0.1               # 正常模式下的最低阈值
+  initial_weight: 1.0              # 新关键词初始权重
+
+  # 权重上下限
+  max_weight: 5.0                  # 权重上限
+  min_weight: -2.0                 # 权重下限（负分会被过滤）

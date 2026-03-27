@@ -1,207 +1,219 @@
+#!/usr/bin/env python3
 """
-OpenAlex Fetcher - Fetch papers from OpenAlex API.
+OpenAlex Fetcher - 从 OpenAlex API 获取学术论文
 
-OpenAlex has 250M+ papers, completely free and open.
-Polite pool: include email in User-Agent for higher rate limits.
+OpenAlex 是一个完全免费、开放的学术图谱，包含超过 2.5 亿篇论文。
+API 文档: https://docs.openalex.org/
 """
 
-import json
 import logging
-import os
-import urllib.request
-import urllib.parse
+import time
 from datetime import datetime, timedelta, timezone
+from typing import Optional
+
+import requests
 
 logger = logging.getLogger(__name__)
 
 
 class OpenAlexFetcher:
     """Fetch papers from OpenAlex API."""
-
+    
     BASE_URL = "https://api.openalex.org"
-
-    # OpenAlex concept IDs for common fields
-    # Find more at: https://api.openalex.org/concepts?search=
-    CONCEPT_IDS = {
-        "physics": "C121332964",
-        "quantum physics": "C62520636",
-        "atomic physics": "C191897082",
-        "condensed matter": "C33923547",
-        "optics": "C108827166",
-        "computer science": "C41008148",
-        "artificial intelligence": "C154945302",
-        "machine learning": "C119857082",
-        "biology": "C86803240",
-        "chemistry": "C185592680",
-        "materials science": "C192562407",
-        "mathematics": "C33923547",
-        "medicine": "C71924100",
-        "neuroscience": "C134018914",
-    }
-
-    def __init__(self, concepts: list[str] = None, keywords: list[str] = None):
+    
+    def __init__(self, concepts: list[str] = None, keywords: list[str] = None, 
+                 email: str = None):
         """
-        Initialize the fetcher.
+        初始化 OpenAlex fetcher.
         
         Args:
-            concepts: List of concept names like ["physics", "quantum physics"]
-            keywords: List of keywords to search in title/abstract
+            concepts: OpenAlex concept IDs 列表，如 ["C62520636"] (Quantum mechanics)
+            keywords: 搜索关键词列表
+            email: 用于 polite pool（可选，但推荐）
         """
         self.concepts = concepts or []
         self.keywords = keywords or []
-        self.email = os.environ.get("OPENALEX_EMAIL", "")
-
-    def fetch(self, days_back: int = 7, max_results: int = 100) -> list[dict]:
+        self.session = requests.Session()
+        
+        # OpenAlex 推荐在请求中包含邮箱以获得更高的速率限制
+        headers = {"User-Agent": "PaperDigestBot/1.0 (Academic Research Tool)"}
+        if email:
+            headers["User-Agent"] += f"; mailto:{email}"
+        self.session.headers.update(headers)
+    
+    def fetch(self, days_back: int = 2, max_results: int = 50) -> list[dict]:
         """
-        Fetch recent papers from OpenAlex.
+        获取最近发表的论文。
         
         Args:
-            days_back: Number of days to look back
-            max_results: Maximum number of papers to fetch per query
+            days_back: 获取最近几天的论文
+            max_results: 最大返回数量
             
         Returns:
-            List of paper dicts
+            论文列表
         """
         papers = []
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_back)
-        cutoff_str = cutoff_date.strftime("%Y-%m-%d")
-
-        # Search by concepts
-        for concept in self.concepts:
-            try:
-                concept_id = self.CONCEPT_IDS.get(concept.lower())
-                if concept_id:
-                    results = self._search_by_concept(concept_id, cutoff_str, max_results)
-                else:
-                    # Try searching by concept name
-                    results = self._search_by_keyword(concept, cutoff_str, max_results)
-                papers.extend(results)
-                logger.info(f"  OpenAlex/{concept}: {len(results)} papers")
-            except Exception as e:
-                logger.error(f"Failed to fetch OpenAlex for concept '{concept}': {e}")
-
-        # Search by keywords
-        for keyword in self.keywords:
-            try:
-                results = self._search_by_keyword(keyword, cutoff_str, max_results)
-                papers.extend(results)
-                logger.info(f"  OpenAlex/{keyword}: {len(results)} papers")
-            except Exception as e:
-                logger.error(f"Failed to fetch OpenAlex for keyword '{keyword}': {e}")
-
-        # Deduplicate by paper ID
+        from_date = cutoff_date.strftime("%Y-%m-%d")
+        
+        # 方法1：按概念搜索
+        if self.concepts:
+            for concept_id in self.concepts:
+                try:
+                    concept_papers = self._fetch_by_concept(concept_id, from_date, max_results // len(self.concepts))
+                    papers.extend(concept_papers)
+                    time.sleep(0.2)  # Rate limiting
+                except Exception as e:
+                    logger.error(f"Error fetching OpenAlex concept {concept_id}: {e}")
+        
+        # 方法2：按关键词搜索
+        if self.keywords:
+            for keyword in self.keywords:
+                try:
+                    keyword_papers = self._fetch_by_keyword(keyword, from_date, max_results // len(self.keywords) if self.keywords else max_results)
+                    papers.extend(keyword_papers)
+                    time.sleep(0.2)
+                except Exception as e:
+                    logger.error(f"Error fetching OpenAlex keyword '{keyword}': {e}")
+        
+        # 去重
         seen_ids = set()
         unique_papers = []
         for paper in papers:
             if paper["id"] not in seen_ids:
                 seen_ids.add(paper["id"])
                 unique_papers.append(paper)
-
-        return unique_papers
-
-    def _search_by_concept(self, concept_id: str, date_from: str, limit: int) -> list[dict]:
-        """Search papers by OpenAlex concept ID."""
+        
+        logger.info(f"OpenAlex: fetched {len(unique_papers)} unique papers")
+        return unique_papers[:max_results]
+    
+    def _fetch_by_concept(self, concept_id: str, from_date: str, per_page: int = 25) -> list[dict]:
+        """按 OpenAlex concept 获取论文."""
+        # 标准化 concept ID
+        if not concept_id.startswith("C"):
+            concept_id = f"C{concept_id}"
+        
+        url = f"{self.BASE_URL}/works"
         params = {
-            "filter": f"concepts.id:{concept_id},from_publication_date:{date_from}",
-            "per_page": min(limit, 200),
+            "filter": f"concepts.id:{concept_id},from_publication_date:{from_date}",
             "sort": "publication_date:desc",
+            "per_page": min(per_page, 200),
+            "select": "id,doi,title,abstract_inverted_index,authorships,publication_date,primary_location,cited_by_count",
         }
         
-        url = f"{self.BASE_URL}/works?{urllib.parse.urlencode(params)}"
-        return self._fetch_and_parse(url)
-
-    def _search_by_keyword(self, keyword: str, date_from: str, limit: int) -> list[dict]:
-        """Search papers by keyword in title/abstract."""
+        return self._fetch_works(url, params)
+    
+    def _fetch_by_keyword(self, keyword: str, from_date: str, per_page: int = 25) -> list[dict]:
+        """按关键词搜索论文."""
+        url = f"{self.BASE_URL}/works"
         params = {
             "search": keyword,
-            "filter": f"from_publication_date:{date_from}",
-            "per_page": min(limit, 200),
+            "filter": f"from_publication_date:{from_date}",
             "sort": "publication_date:desc",
+            "per_page": min(per_page, 200),
+            "select": "id,doi,title,abstract_inverted_index,authorships,publication_date,primary_location,cited_by_count",
         }
         
-        url = f"{self.BASE_URL}/works?{urllib.parse.urlencode(params)}"
-        return self._fetch_and_parse(url)
-
-    def _fetch_and_parse(self, url: str) -> list[dict]:
-        """Fetch URL and parse results into paper dicts."""
-        # Add email for polite pool (higher rate limits)
-        if self.email:
-            separator = "&" if "?" in url else "?"
-            url = f"{url}{separator}mailto={urllib.parse.quote(self.email)}"
-
-        headers = {
-            "Accept": "application/json",
-            "User-Agent": f"PaperDigestBot/1.0 (mailto:{self.email})" if self.email else "PaperDigestBot/1.0",
-        }
-
-        req = urllib.request.Request(url, headers=headers)
+        return self._fetch_works(url, params)
+    
+    def _fetch_works(self, url: str, params: dict) -> list[dict]:
+        """执行 API 请求并解析结果."""
+        try:
+            response = self.session.get(url, params=params, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+        except requests.RequestException as e:
+            logger.error(f"OpenAlex API error: {e}")
+            return []
         
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            data = json.loads(resp.read())
-
         papers = []
         for item in data.get("results", []):
-            title = item.get("title", "")
-            
-            # Get abstract from inverted index if available
-            abstract = ""
-            abstract_inverted = item.get("abstract_inverted_index")
-            if abstract_inverted:
-                abstract = self._reconstruct_abstract(abstract_inverted)
-            
-            if not title:
-                continue
-
-            # Extract DOI
-            doi = item.get("doi", "")
-            if doi and doi.startswith("https://doi.org/"):
-                doi = doi.replace("https://doi.org/", "")
-
-            # Parse authors
-            authors = []
-            for authorship in item.get("authorships", []):
-                author = authorship.get("author", {})
-                if author.get("display_name"):
-                    authors.append(author["display_name"])
-
-            # Get OpenAlex ID
-            openalex_id = item.get("id", "")
-            if openalex_id.startswith("https://openalex.org/"):
-                openalex_id = openalex_id.replace("https://openalex.org/", "")
-
-            # Get best URL
-            url = item.get("primary_location", {}).get("landing_page_url", "")
-            if not url:
-                url = item.get("doi", "") or f"https://openalex.org/{openalex_id}"
-
-            paper = {
-                "id": f"oa:{openalex_id}",
-                "title": title.strip(),
-                "abstract": abstract.strip(),
-                "authors": authors[:10],  # Limit to first 10 authors
-                "url": url,
-                "published": item.get("publication_date", ""),
-                "source": "OpenAlex",
-                "doi": doi,
-                "venue": item.get("primary_location", {}).get("source", {}).get("display_name", ""),
-                "cited_by_count": item.get("cited_by_count", 0),
-                "open_access": item.get("open_access", {}).get("is_oa", False),
-            }
-            papers.append(paper)
-
+            paper = self._parse_paper(item)
+            if paper:
+                papers.append(paper)
+        
         return papers
-
+    
+    def _parse_paper(self, item: dict) -> Optional[dict]:
+        """解析 API 返回的论文数据."""
+        work_id = item.get("id", "").replace("https://openalex.org/", "")
+        title = item.get("title")
+        
+        if not work_id or not title:
+            return None
+        
+        # OpenAlex 使用 inverted index 存储摘要，需要重建
+        abstract = self._reconstruct_abstract(item.get("abstract_inverted_index", {}))
+        
+        # 提取作者
+        authors = []
+        for authorship in item.get("authorships", []):
+            author_info = authorship.get("author", {})
+            name = author_info.get("display_name")
+            if name:
+                authors.append(name)
+        
+        # 提取 DOI
+        doi = item.get("doi", "").replace("https://doi.org/", "") if item.get("doi") else None
+        
+        # 构建 URL
+        primary_location = item.get("primary_location", {}) or {}
+        landing_page_url = primary_location.get("landing_page_url")
+        
+        if doi:
+            url = f"https://doi.org/{doi}"
+        elif landing_page_url:
+            url = landing_page_url
+        else:
+            url = f"https://openalex.org/{work_id}"
+        
+        # 解析发布日期
+        pub_date = item.get("publication_date")
+        if pub_date:
+            try:
+                published = datetime.strptime(pub_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            except ValueError:
+                published = datetime.now(timezone.utc)
+        else:
+            published = datetime.now(timezone.utc)
+        
+        # 获取来源/期刊名
+        source = primary_location.get("source", {}) or {}
+        venue = source.get("display_name", "")
+        
+        return {
+            "id": f"oa:{work_id}",
+            "title": title,
+            "abstract": abstract or "(No abstract available)",
+            "authors": authors[:10],  # 限制作者数量
+            "url": url,
+            "published": published.isoformat(),
+            "source": f"OpenAlex ({venue})" if venue else "OpenAlex",
+            "doi": doi,
+            "venue": venue,
+            "citation_count": item.get("cited_by_count", 0),
+        }
+    
     def _reconstruct_abstract(self, inverted_index: dict) -> str:
-        """Reconstruct abstract from OpenAlex inverted index format."""
+        """
+        从 OpenAlex 的 inverted index 格式重建摘要文本。
+        
+        OpenAlex 存储格式: {"word": [position1, position2, ...], ...}
+        """
         if not inverted_index:
             return ""
         
-        # Create position -> word mapping
-        word_positions = []
+        # 构建位置到单词的映射
+        position_word = {}
         for word, positions in inverted_index.items():
             for pos in positions:
-                word_positions.append((pos, word))
+                position_word[pos] = word
         
-        # Sort by position and join
-        word_positions.sort(key=lambda x: x[0])
-        return " ".join(word for _, word in word_positions)
+        # 按位置排序并重建文本
+        if not position_word:
+            return ""
+        
+        max_pos = max(position_word.keys())
+        words = [position_word.get(i, "") for i in range(max_pos + 1)]
+        
+        return " ".join(words)
