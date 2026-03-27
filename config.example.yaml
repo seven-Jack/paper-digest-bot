@@ -3,7 +3,7 @@
 
 # === AI Provider ===
 # Options: gemini, openai, claude
-ai_provider: gemini
+ai_provider: groq
 
 # === Email Settings ===
 email:
