@@ -1,7 +1,7 @@
 """
 AI Analyzer - Multi-provider paper analysis.
 
-Supports: Gemini (Google), OpenAI, Claude (Anthropic).
+Supports: Gemini (Google), OpenAI, Claude (Anthropic), Groq, DeepSeek, Mistral, Together AI, OpenRouter.
 User selects provider in config; API key comes from environment.
 """
 
@@ -159,12 +159,272 @@ class ClaudeAnalyzer(AnalyzerBase):
         return "(No response from Claude)"
 
 
+class GroqAnalyzer(AnalyzerBase):
+    """Groq API analyzer - Fast inference with open models."""
+
+    def __init__(self):
+        self.api_key = os.environ.get("GROQ_API_KEY", "")
+        self.model = "llama-3.3-70b-versatile"  # Fast and capable
+
+    def analyze(self, paper: dict, language: str = "en") -> str:
+        prompt = self._build_prompt(paper, language)
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 300,
+            "temperature": 0.3,
+        }
+
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read())
+
+        choices = result.get("choices", [])
+        if choices:
+            return choices[0].get("message", {}).get("content", "").strip()
+
+        return "(No response from Groq)"
+
+
+class DeepSeekAnalyzer(AnalyzerBase):
+    """DeepSeek API analyzer - Cost-effective Chinese AI."""
+
+    def __init__(self):
+        self.api_key = os.environ.get("DEEPSEEK_API_KEY", "")
+        self.model = "deepseek-chat"
+
+    def analyze(self, paper: dict, language: str = "en") -> str:
+        prompt = self._build_prompt(paper, language)
+        url = "https://api.deepseek.com/chat/completions"
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 300,
+            "temperature": 0.3,
+        }
+
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read())
+
+        choices = result.get("choices", [])
+        if choices:
+            return choices[0].get("message", {}).get("content", "").strip()
+
+        return "(No response from DeepSeek)"
+
+
+class MistralAnalyzer(AnalyzerBase):
+    """Mistral AI API analyzer."""
+
+    def __init__(self):
+        self.api_key = os.environ.get("MISTRAL_API_KEY", "")
+        self.model = "mistral-small-latest"
+
+    def analyze(self, paper: dict, language: str = "en") -> str:
+        prompt = self._build_prompt(paper, language)
+        url = "https://api.mistral.ai/v1/chat/completions"
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 300,
+            "temperature": 0.3,
+        }
+
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read())
+
+        choices = result.get("choices", [])
+        if choices:
+            return choices[0].get("message", {}).get("content", "").strip()
+
+        return "(No response from Mistral)"
+
+
+class TogetherAnalyzer(AnalyzerBase):
+    """Together AI API analyzer - Access to many open models."""
+
+    def __init__(self):
+        self.api_key = os.environ.get("TOGETHER_API_KEY", "")
+        self.model = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+
+    def analyze(self, paper: dict, language: str = "en") -> str:
+        prompt = self._build_prompt(paper, language)
+        url = "https://api.together.xyz/v1/chat/completions"
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 300,
+            "temperature": 0.3,
+        }
+
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read())
+
+        choices = result.get("choices", [])
+        if choices:
+            return choices[0].get("message", {}).get("content", "").strip()
+
+        return "(No response from Together AI)"
+
+
+class OpenRouterAnalyzer(AnalyzerBase):
+    """OpenRouter API analyzer - Unified access to many providers."""
+
+    def __init__(self):
+        self.api_key = os.environ.get("OPENROUTER_API_KEY", "")
+        self.model = "meta-llama/llama-3.3-70b-instruct"  # Good balance of speed/quality
+
+    def analyze(self, paper: dict, language: str = "en") -> str:
+        prompt = self._build_prompt(paper, language)
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 300,
+            "temperature": 0.3,
+        }
+
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",
+                "HTTP-Referer": "https://github.com/paper-digest-bot",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read())
+
+        choices = result.get("choices", [])
+        if choices:
+            return choices[0].get("message", {}).get("content", "").strip()
+
+        return "(No response from OpenRouter)"
+
+
+class SiliconFlowAnalyzer(AnalyzerBase):
+    """SiliconFlow API analyzer - Chinese cloud AI platform."""
+
+    def __init__(self):
+        self.api_key = os.environ.get("SILICONFLOW_API_KEY", "")
+        self.model = "Qwen/Qwen2.5-72B-Instruct"
+
+    def analyze(self, paper: dict, language: str = "en") -> str:
+        prompt = self._build_prompt(paper, language)
+        url = "https://api.siliconflow.cn/v1/chat/completions"
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 300,
+            "temperature": 0.3,
+        }
+
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read())
+
+        choices = result.get("choices", [])
+        if choices:
+            return choices[0].get("message", {}).get("content", "").strip()
+
+        return "(No response from SiliconFlow)"
+
+
+class ZhipuAnalyzer(AnalyzerBase):
+    """Zhipu AI (GLM) API analyzer - Chinese AI."""
+
+    def __init__(self):
+        self.api_key = os.environ.get("ZHIPU_API_KEY", "")
+        self.model = "glm-4-flash"
+
+    def analyze(self, paper: dict, language: str = "en") -> str:
+        prompt = self._build_prompt(paper, language)
+        url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 300,
+            "temperature": 0.3,
+        }
+
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = json.loads(resp.read())
+
+        choices = result.get("choices", [])
+        if choices:
+            return choices[0].get("message", {}).get("content", "").strip()
+
+        return "(No response from Zhipu AI)"
+
+
 # === Provider Registry ===
 
 _PROVIDERS = {
     "gemini": GeminiAnalyzer,
     "openai": OpenAIAnalyzer,
     "claude": ClaudeAnalyzer,
+    "groq": GroqAnalyzer,
+    "deepseek": DeepSeekAnalyzer,
+    "mistral": MistralAnalyzer,
+    "together": TogetherAnalyzer,
+    "openrouter": OpenRouterAnalyzer,
+    "siliconflow": SiliconFlowAnalyzer,
+    "zhipu": ZhipuAnalyzer,
 }
 
 # Map of provider -> required environment variable
@@ -172,6 +432,13 @@ _REQUIRED_KEYS = {
     "gemini": "GEMINI_API_KEY",
     "openai": "OPENAI_API_KEY",
     "claude": "ANTHROPIC_API_KEY",
+    "groq": "GROQ_API_KEY",
+    "deepseek": "DEEPSEEK_API_KEY",
+    "mistral": "MISTRAL_API_KEY",
+    "together": "TOGETHER_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
+    "siliconflow": "SILICONFLOW_API_KEY",
+    "zhipu": "ZHIPU_API_KEY",
 }
 
 
@@ -188,3 +455,14 @@ def get_analyzer(provider: str) -> AnalyzerBase | None:
         return None
 
     return _PROVIDERS[provider]()
+
+
+def list_providers() -> dict:
+    """List all available providers with their API key requirements."""
+    return {
+        provider: {
+            "env_key": _REQUIRED_KEYS.get(provider, ""),
+            "description": _PROVIDERS[provider].__doc__.strip() if _PROVIDERS[provider].__doc__ else "",
+        }
+        for provider in _PROVIDERS
+    }
