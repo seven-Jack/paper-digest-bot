@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paper Digest Bot - Setup Wizard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f13;
+  --surface: #1a1a22;
+  --border: #2a2a35;
+  --text: #e8e6e3;
+  --muted: #8a8892;
+  --accent: #7c6aef;
+  --accent-light: #9b8cf7;
+  --success: #34d399;
+  --danger: #f87171;
+  --radius: 12px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+.container { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
+h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+.subtitle { color: var(--muted); font-size: 15px; margin-bottom: 40px; }
+.badge {
+  display: inline-block; background: #7c6aef20; color: var(--accent-light);
+  padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+}
+.security-note {
+  background: #34d39910; border: 1px solid #34d39930; border-radius: var(--radius);
+  padding: 12px 16px; margin-bottom: 32px; font-size: 13px; color: #a7f3d0;
+}
+.section {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; margin-bottom: 20px;
+}
+.section-title {
+  font-size: 16px; font-weight: 600; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title .num {
+  background: var(--accent); color: #fff; width: 24px; height: 24px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; flex-shrink: 0;
+}
+label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+input, select, textarea {
+  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px; color: var(--text);
+  font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+textarea { font-family: 'IBM Plex Mono', monospace; font-size: 13px; resize: vertical; }
+.field { margin-bottom: 16px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.checkbox-group label {
+  display: flex; align-items: center; gap: 6px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px;
+  cursor: pointer; font-size: 13px; color: var(--text); transition: all 0.2s;
+}
+.checkbox-group label:has(input:checked) {
+  border-color: var(--accent); background: #7c6aef10;
+}
+.checkbox-group input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+.hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--accent); color: #fff; border: none; border-radius: 8px;
+  padding: 12px 24px; font-size: 15px; font-weight: 500; cursor: pointer;
+  font-family: inherit; transition: all 0.2s;
+}
+.btn:hover { background: var(--accent-light); transform: translateY(-1px); }
+.btn-outline {
+  background: transparent; border: 1px solid var(--border); color: var(--text);
+}
+.btn-outline:hover { border-color: var(--accent); background: #7c6aef10; }
+.output-area {
+  display: none; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px; margin-top: 16px; position: relative;
+}
+.output-area.visible { display: block; }
+.output-area pre {
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #a7f3d0;
+  white-space: pre-wrap; line-height: 1.5; margin: 0;
+}
+.copy-btn {
+  position: absolute; top: 8px; right: 8px; background: var(--surface);
+  border: 1px solid var(--border); color: var(--muted); border-radius: 6px;
+  padding: 4px 12px; font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.copy-btn:hover { color: var(--text); border-color: var(--accent); }
+.step-guide {
+  display: none; background: var(--surface); border: 1px solid var(--accent);
+  border-radius: var(--radius); padding: 24px; margin-top: 24px;
+}
+.step-guide.visible { display: block; }
+.step-guide h3 { font-size: 18px; margin-bottom: 16px; color: var(--accent-light); }
+.step-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.step-item:last-child { border-bottom: none; }
+.step-item .step-num {
+  display: inline-block; background: var(--accent); color: #fff;
+  width: 22px; height: 22px; border-radius: 50%; text-align: center;
+  font-size: 12px; line-height: 22px; margin-right: 8px; font-weight: 600;
+}
+.secrets-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.secrets-table th, .secrets-table td {
+  text-align: left; padding: 8px 12px; font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.secrets-table th { color: var(--muted); font-weight: 500; }
+.secrets-table code {
+  font-family: 'IBM Plex Mono', monospace; background: var(--bg);
+  padding: 2px 6px; border-radius: 4px; font-size: 12px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+    <h1>Paper Digest Bot</h1>
+    <span class="badge">Setup Wizard</span>
+  </div>
+  <p class="subtitle">Fill out this form to generate your configuration. All data stays in your browser.</p>
+
+  <div class="security-note">
+    🔒 <strong>Privacy first</strong> — This page is 100% client-side. Your API keys, email, and DOIs are never sent to any server. Everything is processed locally in your browser.
+  </div>
+
+  <!-- Section 1: AI Provider -->
+  <div class="section">
+    <div class="section-title"><span class="num">1</span> AI Provider</div>
+    <div class="field">
+      <label>Choose your AI service</label>
+      <select id="ai_provider" onchange="updateApiKeyLabel()">
+        <option value="gemini">Google Gemini (Free tier recommended)</option>
+        <option value="openai">OpenAI GPT</option>
+        <option value="claude">Anthropic Claude</option>
+      </select>
+    </div>
+    <div class="field">
+      <label id="api_key_label">Gemini API Key</label>
+      <input type="password" id="api_key" placeholder="Your API key...">
+      <p class="hint" id="api_key_hint">Get free key: <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent-light);">Google AI Studio</a></p>
+    </div>
+  </div>
+
+  <!-- Section 2: Email -->
+  <div class="section">
+    <div class="section-title"><span class="num">2</span> Email Settings</div>
+    <div class="row">
+      <div class="field">
+        <label>Email Address (Gmail recommended)</label>
+        <input type="email" id="email_addr" placeholder="you@gmail.com">
+      </div>
+      <div class="field">
+        <label>App Password</label>
+        <input type="password" id="email_pass" placeholder="xxxx xxxx xxxx xxxx">
+      </div>
+    </div>
+    <p class="hint">Gmail users: create an App Password at <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--accent-light);">myaccount.google.com/apppasswords</a></p>
+    <div class="row" style="margin-top:16px;">
+      <div class="field">
+        <label>Language</label>
+        <select id="language">
+          <option value="zh">中文</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Digest Time (UTC)</label>
+        <select id="schedule">
+          <option value="0 0 * * *">00:00 UTC (08:00 Beijing)</option>
+          <option value="0 6 * * *">06:00 UTC (14:00 Beijing)</option>
+          <option value="0 13 * * *">13:00 UTC (21:00 Beijing)</option>
+          <option value="0 22 * * *">22:00 UTC (06:00 Beijing)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: Journal Sources -->
+  <div class="section">
+    <div class="section-title"><span class="num">3</span> Journal Sources</div>
+    <label>Select the sources you want to follow</label>
+    <div class="checkbox-group" style="margin-top:8px;">
+      <label><input type="checkbox" id="src_arxiv" checked> arXiv</label>
+      <label><input type="checkbox" id="src_aps" checked> APS (PRL/PRA/PRX)</label>
+      <label><input type="checkbox" id="src_nature"> Nature / Nature Physics</label>
+      <label><input type="checkbox" id="src_science"> Science / Science Advances</label>
+    </div>
+    <div class="field" style="margin-top:16px;">
+      <label>arXiv Categories (comma-separated)</label>
+      <input type="text" id="arxiv_cats" value="physics.atom-ph, quant-ph, physics.comp-ph">
+    </div>
+    <div class="field">
+      <label>APS Journals (comma-separated)</label>
+      <input type="text" id="aps_journals" value="prl, pra, prx">
+    </div>
+  </div>
+
+  <!-- Section 4: DOIs -->
+  <div class="section">
+    <div class="section-title"><span class="num">4</span> Reference Papers (DOIs)</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">
+      Provide DOIs of papers that represent your research interests. One per line.
+    </p>
+    <textarea id="dois" rows="5" placeholder="10.1103/PhysRevA.111.053107&#10;10.1103/ntv1-8d5w&#10;10.1103/PhysRevA.108.032804">10.1103/PhysRevA.111.053107
+10.1103/ntv1-8d5w
+10.1103/PhysRevA.108.032804</textarea>
+  </div>
+
+  <!-- Generate Button -->
+  <div style="text-align:center;margin:32px 0;">
+    <button class="btn" onclick="generate()">
+      ⚡ Generate Configuration
+    </button>
+  </div>
+
+  <!-- Output: config.yaml -->
+  <div class="output-area" id="config_output">
+    <button class="copy-btn" onclick="copyText('config_code')">Copy</button>
+    <label style="color:var(--accent-light);font-weight:600;margin-bottom:8px;">config.yaml</label>
+    <pre id="config_code"></pre>
+  </div>
+
+  <!-- Output: Step-by-step guide -->
+  <div class="step-guide" id="guide">
+    <h3>🚀 Setup Steps</h3>
+
+    <div class="step-item">
+      <span class="step-num">1</span>
+      <strong>Create your repository</strong>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px;">
+        Click "Use this template" on the original repo to create your own copy.
+      </p>
+    </div>
+
+    <div class="step-item">
+      <span class="step-num">2</span>
+      <strong>Add config.yaml</strong>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px;">
+        Copy the generated <code style="font-family:'IBM Plex Mono',monospace;background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;">config.yaml</code> above and commit it to your repo's root directory.
+      </p>
+    </div>
+
+    <div class="step-item">
+      <span class="step-num">3</span>
+      <strong>Set GitHub Secrets</strong>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px;">
+        Go to your repo → Settings → Secrets and variables → Actions → New repository secret.
+        Add these secrets:
+      </p>
+      <table class="secrets-table" id="secrets_table"></table>
+    </div>
+
+    <div class="step-item">
+      <span class="step-num">4</span>
+      <strong>Initialize keywords</strong>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px;">
+        Go to Actions tab → "Bootstrap Keywords from DOIs" → Run workflow.<br>
+        Paste your DOIs: <code id="doi_display" style="font-family:'IBM Plex Mono',monospace;background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;"></code>
+      </p>
+    </div>
+
+    <div class="step-item">
+      <span class="step-num">5</span>
+      <strong>Enable Actions</strong>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px;">
+        Go to Actions tab → enable workflows if prompted. The daily digest will run automatically. You can also click "Run workflow" on "Daily Paper Digest" to test immediately.
+      </p>
+    </div>
+
+    <div style="margin-top:20px;padding:16px;background:#7c6aef10;border-radius:8px;text-align:center;">
+      <p style="color:var(--accent-light);font-size:14px;">✅ That's it! You'll receive your first paper digest email within minutes of running the workflow.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function updateApiKeyLabel() {
+  const p = document.getElementById('ai_provider').value;
+  const labels = { gemini: 'Gemini API Key', openai: 'OpenAI API Key', claude: 'Anthropic API Key' };
+  const hints = {
+    gemini: 'Get free key: <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent-light);">Google AI Studio</a>',
+    openai: 'Get key: <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--accent-light);">OpenAI Platform</a>',
+    claude: 'Get key: <a href="https://console.anthropic.com/" target="_blank" style="color:var(--accent-light);">Anthropic Console</a>',
+  };
+  document.getElementById('api_key_label').textContent = labels[p];
+  document.getElementById('api_key_hint').innerHTML = hints[p];
+}
+
+function generate() {
+  const provider = document.getElementById('ai_provider').value;
+  const language = document.getElementById('language').value;
+  const schedule = document.getElementById('schedule').value;
+  const arxivCats = document.getElementById('arxiv_cats').value.split(',').map(s => s.trim()).filter(Boolean);
+  const apsJournals = document.getElementById('aps_journals').value.split(',').map(s => s.trim()).filter(Boolean);
+
+  const srcArxiv = document.getElementById('src_arxiv').checked;
+  const srcAps = document.getElementById('src_aps').checked;
+  const srcNature = document.getElementById('src_nature').checked;
+  const srcScience = document.getElementById('src_science').checked;
+
+  // Generate config.yaml
+  let yaml = `# Paper Digest Bot Configuration\n# Generated by Setup Wizard\n\n`;
+  yaml += `ai_provider: ${provider}\n\n`;
+  yaml += `email:\n  language: ${language}\n  max_papers: 20\n\n`;
+  yaml += `sources:\n`;
+  yaml += `  arxiv:\n    enabled: ${srcArxiv}\n    categories:\n`;
+  arxivCats.forEach(c => yaml += `      - ${c}\n`);
+  yaml += `  aps:\n    enabled: ${srcAps}\n    journals:\n`;
+  apsJournals.forEach(j => yaml += `      - ${j}\n`);
+  yaml += `  nature:\n    enabled: ${srcNature}\n    journals:\n      - nature\n      - nphys\n`;
+  yaml += `  science:\n    enabled: ${srcScience}\n    journals:\n      - science\n      - sciadv\n\n`;
+  yaml += `weights:\n  vote_values:\n    not_interested: -2\n    neutral: 0\n    very_relevant: 3\n`;
+  yaml += `  daily_decay: 0.02\n  min_threshold: 0.1\n  initial_weight: 1.0\n`;
+
+  document.getElementById('config_code').textContent = yaml;
+  document.getElementById('config_output').classList.add('visible');
+
+  // Generate secrets table
+  const apiKey = document.getElementById('api_key').value || '(your key here)';
+  const email = document.getElementById('email_addr').value || '(your email)';
+  const pass = document.getElementById('email_pass').value || '(your app password)';
+
+  const secretNames = { gemini: 'GEMINI_API_KEY', openai: 'OPENAI_API_KEY', claude: 'ANTHROPIC_API_KEY' };
+
+  let table = `<tr><th>Secret Name</th><th>Value</th></tr>`;
+  table += `<tr><td><code>${secretNames[provider]}</code></td><td><code>${maskValue(apiKey)}</code></td></tr>`;
+  table += `<tr><td><code>EMAIL_ADDRESS</code></td><td><code>${email}</code></td></tr>`;
+  table += `<tr><td><code>EMAIL_PASSWORD</code></td><td><code>${maskValue(pass)}</code></td></tr>`;
+  document.getElementById('secrets_table').innerHTML = table;
+
+  // DOIs display
+  const dois = document.getElementById('dois').value.trim().split('\n').filter(Boolean).join(',');
+  document.getElementById('doi_display').textContent = dois;
+
+  document.getElementById('guide').classList.add('visible');
+
+  // Scroll to output
+  document.getElementById('config_output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Update cron in the generated yaml
+  // (The cron is set in the workflow file, but we show it in config for reference)
+}
+
+function maskValue(val) {
+  if (!val || val.startsWith('(')) return val;
+  if (val.length <= 8) return '••••••••';
+  return val.substring(0, 4) + '••••' + val.substring(val.length - 4);
+}
+
+function copyText(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector(`#${id}`).parentElement.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+name: Bootstrap Keywords from DOIs
+
+on:
+  workflow_dispatch:
+    inputs:
+      dois:
+        description: 'Comma-separated DOI list (e.g., 10.1103/PhysRevA.111.053107,10.1103/ntv1-8d5w)'
+        required: true
+        type: string
+      use_ai:
+        description: 'Use AI for keyword extraction?'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run bootstrap
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          AI_FLAG=""
+          if [ "${{ inputs.use_ai }}" = "true" ]; then
+            # Detect which AI provider is configured
+            if [ -n "$GEMINI_API_KEY" ]; then AI_FLAG="--ai gemini";
+            elif [ -n "$OPENAI_API_KEY" ]; then AI_FLAG="--ai openai";
+            elif [ -n "$ANTHROPIC_API_KEY" ]; then AI_FLAG="--ai claude";
+            fi
+          fi
+          python bootstrap.py --dois "${{ inputs.dois }}" $AI_FLAG
+
+      - name: Commit keywords
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "Paper Digest Bot"
+          git add data/keywords.json
+          git diff --staged --quiet || git commit -m "bootstrap: initialize keywords from DOIs [skip ci]"
+          git push

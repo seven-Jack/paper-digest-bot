@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paper Digest - Vote</title>
+<style>
+:root { --bg: #0f0f13; --text: #e8e6e3; --muted: #8a8892; --accent: #7c6aef; --green: #34d399; --red: #f87171; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.card { background: #1a1a22; border: 1px solid #2a2a35; border-radius: 16px; padding: 40px; max-width: 480px; width: 90%; text-align: center; }
+h1 { font-size: 20px; margin-bottom: 8px; }
+.sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+.status { font-size: 48px; margin-bottom: 16px; }
+.msg { font-size: 15px; line-height: 1.6; }
+.error { color: var(--red); }
+.success { color: var(--green); }
+.info-box { background: #7c6aef10; border: 1px solid #7c6aef30; border-radius: 12px; padding: 16px; margin-top: 20px; text-align: left; }
+.info-box p { font-size: 13px; color: var(--muted); margin: 4px 0; }
+.info-box code { font-family: monospace; background: #0f0f13; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+a { color: var(--accent); }
+#loading { display: none; }
+.spinner { width: 40px; height: 40px; border: 3px solid #2a2a35; border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.first-setup { display: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <!-- Initial: prompt for PAT (first time only) -->
+  <div id="setup-view">
+    <div class="status">🗳️</div>
+    <h1>Paper Digest Bot — Vote</h1>
+    <p class="sub" id="vote-desc">Processing your vote...</p>
+
+    <div id="loading">
+      <div class="spinner"></div>
+      <p class="msg">Submitting vote...</p>
+    </div>
+
+    <div id="result" style="display:none;"></div>
+
+    <!-- PAT input for first-time setup -->
+    <div id="pat-form" style="display:none;">
+      <div class="info-box" style="margin-bottom:16px;">
+        <p><strong style="color:var(--text);">One-time setup required</strong></p>
+        <p>To vote directly from email, you need a GitHub Personal Access Token with <code>repo</code> scope.</p>
+        <p>Create one at: <a href="https://github.com/settings/tokens/new?scopes=repo&description=PaperDigestVote" target="_blank">github.com/settings/tokens</a></p>
+        <p style="margin-top:8px;color:var(--green);">🔒 Your token is stored ONLY in your browser's localStorage. It never leaves your device except to call the GitHub API directly.</p>
+      </div>
+      <input type="password" id="pat-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+             style="width:100%;padding:10px 14px;background:#0f0f13;border:1px solid #2a2a35;
+                    border-radius:8px;color:var(--text);font-family:monospace;font-size:14px;
+                    margin-bottom:12px;">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-bottom:16px;cursor:pointer;">
+        <input type="checkbox" id="remember-pat" checked style="accent-color:var(--accent);">
+        Remember token in this browser
+      </label>
+      <button onclick="submitWithPat()"
+              style="background:var(--accent);color:#fff;border:none;border-radius:8px;
+                     padding:12px 32px;font-size:15px;cursor:pointer;font-family:inherit;">
+        Submit Vote
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Parse URL parameters
+const params = new URLSearchParams(window.location.search);
+const repo = params.get('repo') || '';        // owner/name
+const paperId = params.get('paper_id') || '';
+const vote = params.get('vote') || '';
+const keywords = params.get('keywords') || '';
+
+// Vote labels
+const voteLabels = {
+  not_interested: '👎 Not interested',
+  neutral: '👌 Neutral',
+  very_relevant: '🔥 Very relevant',
+};
+
+// Show vote description
+const desc = document.getElementById('vote-desc');
+desc.textContent = `Vote: ${voteLabels[vote] || vote}`;
+
+// Check if we have a stored PAT
+const storedPat = localStorage.getItem('paper_digest_pat');
+
+if (!repo || !paperId || !vote) {
+  showResult('error', '❌', 'Invalid vote link. Missing required parameters.');
+} else if (storedPat) {
+  // Auto-submit with stored PAT
+  triggerVote(storedPat);
+} else {
+  // Show PAT input form
+  document.getElementById('pat-form').style.display = 'block';
+}
+
+function submitWithPat() {
+  const pat = document.getElementById('pat-input').value.trim();
+  if (!pat) {
+    alert('Please enter your GitHub Personal Access Token');
+    return;
+  }
+
+  if (document.getElementById('remember-pat').checked) {
+    localStorage.setItem('paper_digest_pat', pat);
+  }
+
+  triggerVote(pat);
+}
+
+async function triggerVote(pat) {
+  document.getElementById('pat-form').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+
+  const [owner, repoName] = repo.split('/');
+  const url = `https://api.github.com/repos/${owner}/${repoName}/actions/workflows/vote_handler.yml/dispatches`;
+
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `token ${pat}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ref: 'main',
+        inputs: {
+          paper_id: paperId,
+          vote: vote,
+          keywords: keywords,
+        },
+      }),
+    });
+
+    document.getElementById('loading').style.display = 'none';
+
+    if (resp.status === 204) {
+      showResult('success', '✅', `Vote "${voteLabels[vote] || vote}" submitted successfully! The keyword weights will be updated shortly.`);
+    } else if (resp.status === 401) {
+      localStorage.removeItem('paper_digest_pat');
+      showResult('error', '🔑', 'Token expired or invalid. Please enter a new token.');
+      document.getElementById('pat-form').style.display = 'block';
+    } else if (resp.status === 404) {
+      showResult('error', '❌', `Repository "${repo}" or workflow not found. Check your repo settings.`);
+    } else {
+      const data = await resp.json().catch(() => ({}));
+      showResult('error', '⚠️', `GitHub API error (${resp.status}): ${data.message || 'Unknown error'}`);
+    }
+  } catch (err) {
+    document.getElementById('loading').style.display = 'none';
+    showResult('error', '⚠️', `Network error: ${err.message}`);
+  }
+}
+
+function showResult(type, icon, message) {
+  const el = document.getElementById('result');
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div class="status">${icon}</div>
+    <p class="msg ${type}">${message}</p>
+    ${type === 'success' ? '<p style="color:var(--muted);font-size:13px;margin-top:16px;">You can close this page now.</p>' : ''}
+  `;
+}
+</script>
+</body>
+</html>

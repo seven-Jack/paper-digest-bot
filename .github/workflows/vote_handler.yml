@@ -1,0 +1,72 @@
+name: Vote Handler
+
+on:
+  workflow_dispatch:
+    inputs:
+      paper_id:
+        description: 'Paper ID to vote on'
+        required: true
+        type: string
+      vote:
+        description: 'Vote type: not_interested, neutral, very_relevant'
+        required: true
+        type: choice
+        options:
+          - not_interested
+          - neutral
+          - very_relevant
+      keywords:
+        description: 'Comma-separated matched keywords'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  process_vote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Process vote
+        run: |
+          python -c "
+          import json, sys
+          sys.path.insert(0, '.')
+          from src.weight_manager import WeightManager
+          from src.config_loader import load_config
+
+          config = load_config('config.yaml')
+          wm = WeightManager('data/keywords.json')
+
+          paper_id = '${{ inputs.paper_id }}'
+          vote = '${{ inputs.vote }}'
+          keywords_str = '${{ inputs.keywords }}'
+          keywords = [k.strip() for k in keywords_str.split(',') if k.strip()]
+
+          print(f'Processing vote: paper={paper_id}, vote={vote}, keywords={keywords}')
+          wm.process_vote(paper_id, vote, keywords, config.get('weights', {}))
+          print('Vote processed successfully.')
+
+          stats = wm.get_stats()
+          print(f'Keyword stats: {stats[\"active\"]} active, {stats[\"inactive\"]} inactive')
+          "
+
+      - name: Commit weight updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "Paper Digest Bot"
+          git add data/keywords.json
+          git diff --staged --quiet || git commit -m "vote: ${{ inputs.vote }} on ${{ inputs.paper_id }} [skip ci]"
+          git push

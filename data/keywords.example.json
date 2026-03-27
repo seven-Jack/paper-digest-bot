@@ -1,0 +1,139 @@
+{
+  "metadata": {
+    "created_at": "2026-03-27",
+    "bootstrap_dois": [
+      "10.1103/PhysRevA.108.032804",
+      "10.1103/PhysRevA.111.053107",
+      "10.1103/ntv1-8d5w"
+    ],
+    "version": "1.0"
+  },
+  "keywords": {
+    "relativistic coupled-cluster": {
+      "weight": 1.0,
+      "category": "method",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "configuration interaction": {
+      "weight": 1.0,
+      "category": "method",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "Fock-space coupled-cluster": {
+      "weight": 1.0,
+      "category": "method",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "equation-of-motion coupled-cluster": {
+      "weight": 1.0,
+      "category": "method",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "many-body perturbation theory": {
+      "weight": 1.0,
+      "category": "method",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "Dirac-Coulomb-Gaunt": {
+      "weight": 1.0,
+      "category": "method",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "optical clock transitions": {
+      "weight": 1.0,
+      "category": "application",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "highly charged ions": {
+      "weight": 1.0,
+      "category": "system",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "atomic polarizability": {
+      "weight": 1.0,
+      "category": "property",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "isotope shift": {
+      "weight": 1.0,
+      "category": "property",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "hyperfine structure": {
+      "weight": 1.0,
+      "category": "property",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "transition energy": {
+      "weight": 1.0,
+      "category": "property",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "field shift factor": {
+      "weight": 1.0,
+      "category": "property",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "superheavy element": {
+      "weight": 1.0,
+      "category": "system",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "relativistic atomic structure": {
+      "weight": 1.0,
+      "category": "field",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "Lande g-factor": {
+      "weight": 1.0,
+      "category": "property",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "electric quadrupole moment": {
+      "weight": 1.0,
+      "category": "property",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    },
+    "QED corrections": {
+      "weight": 1.0,
+      "category": "method",
+      "source": "doi_bootstrap",
+      "votes": [],
+      "last_matched": null
+    }
+  }
+}

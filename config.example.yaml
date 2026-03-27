@@ -1,0 +1,52 @@
+# Paper Digest Bot - Configuration Template
+# Copy this file to config.yaml and customize
+
+# === AI Provider ===
+# Options: gemini, openai, claude
+ai_provider: gemini
+
+# === Email Settings ===
+email:
+  language: zh          # zh = Chinese, en = English
+  max_papers: 20        # Max papers per digest email
+  schedule_utc: "00:00" # UTC time (00:00 UTC = 08:00 Beijing)
+
+# === Journal Sources ===
+# Enable/disable specific sources
+sources:
+  arxiv:
+    enabled: true
+    categories:
+      - physics.atom-ph
+      - quant-ph
+      - physics.comp-ph
+  aps:
+    enabled: true
+    journals:
+      - prl    # Physical Review Letters
+      - pra    # Physical Review A
+      - prx    # Physical Review X
+  nature:
+    enabled: true
+    journals:
+      - nature
+      - nphys  # Nature Physics
+  science:
+    enabled: true
+    journals:
+      - science
+      - sciadv  # Science Advances
+
+# === Weight System ===
+weights:
+  # Vote values for 3-tier system
+  vote_values:
+    not_interested: -2
+    neutral: 0
+    very_relevant: 3
+  # Weight decay per day for unvoted papers
+  daily_decay: 0.02
+  # Minimum weight before keyword is deactivated
+  min_threshold: 0.1
+  # Initial weight for new keywords from DOI bootstrap
+  initial_weight: 1.0
