@@ -19,6 +19,32 @@ from src.email_builder import EmailBuilder
 from src.email_sender import send_email
 from src.config_loader import load_config
 
+# Optional fetchers - import with fallback
+try:
+    from src.fetchers.semantic_scholar_fetcher import SemanticScholarFetcher
+except ImportError:
+    SemanticScholarFetcher = None
+
+try:
+    from src.fetchers.openalex_fetcher import OpenAlexFetcher
+except ImportError:
+    OpenAlexFetcher = None
+
+try:
+    from src.fetchers.crossref_fetcher import CrossRefFetcher
+except ImportError:
+    CrossRefFetcher = None
+
+try:
+    from src.fetchers.pubmed_fetcher import PubMedFetcher
+except ImportError:
+    PubMedFetcher = None
+
+try:
+    from src.fetchers.biorxiv_fetcher import BioRxivFetcher
+except ImportError:
+    BioRxivFetcher = None
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -34,20 +60,85 @@ def fetch_papers(config: dict) -> list[dict]:
     
     # 从配置中读取 days_back，默认为 2 天
     days_back = config.get("fetch", {}).get("days_back", 2)
+    max_results = config.get("fetch", {}).get("max_results_per_source", 100)
     logger.info(f"Fetching papers from the last {days_back} days...")
 
+    # arXiv
     if sources.get("arxiv", {}).get("enabled", False):
         logger.info("Fetching from arXiv...")
         fetcher = ArxivFetcher(sources["arxiv"].get("categories", []))
         papers.extend(fetcher.fetch(days_back=days_back))
 
+    # APS (Physical Review journals)
     if sources.get("aps", {}).get("enabled", False):
         logger.info("Fetching from APS journals...")
         fetcher = APSFetcher(sources["aps"].get("journals", []))
         papers.extend(fetcher.fetch(days_back=days_back))
 
-    # Nature and Science fetchers can be added by the community
-    # following the same pattern as ArxivFetcher
+    # Semantic Scholar
+    if sources.get("semantic_scholar", {}).get("enabled", False):
+        if SemanticScholarFetcher:
+            logger.info("Fetching from Semantic Scholar...")
+            ss_config = sources["semantic_scholar"]
+            fetcher = SemanticScholarFetcher(
+                fields_of_study=ss_config.get("fields", []),
+                keywords=ss_config.get("keywords", [])
+            )
+            papers.extend(fetcher.fetch(days_back=days_back, max_results=max_results))
+        else:
+            logger.warning("Semantic Scholar fetcher not available")
+
+    # OpenAlex
+    if sources.get("openalex", {}).get("enabled", False):
+        if OpenAlexFetcher:
+            logger.info("Fetching from OpenAlex...")
+            oa_config = sources["openalex"]
+            fetcher = OpenAlexFetcher(
+                concepts=oa_config.get("concepts", []),
+                keywords=oa_config.get("keywords", [])
+            )
+            papers.extend(fetcher.fetch(days_back=days_back, max_results=max_results))
+        else:
+            logger.warning("OpenAlex fetcher not available")
+
+    # CrossRef
+    if sources.get("crossref", {}).get("enabled", False):
+        if CrossRefFetcher:
+            logger.info("Fetching from CrossRef...")
+            cr_config = sources["crossref"]
+            fetcher = CrossRefFetcher(
+                keywords=cr_config.get("keywords", []),
+                journals=cr_config.get("journals", [])
+            )
+            papers.extend(fetcher.fetch(days_back=days_back, max_results=max_results))
+        else:
+            logger.warning("CrossRef fetcher not available")
+
+    # PubMed
+    if sources.get("pubmed", {}).get("enabled", False):
+        if PubMedFetcher:
+            logger.info("Fetching from PubMed...")
+            pm_config = sources["pubmed"]
+            fetcher = PubMedFetcher(
+                keywords=pm_config.get("keywords", []),
+                mesh_terms=pm_config.get("mesh_terms", [])
+            )
+            papers.extend(fetcher.fetch(days_back=days_back, max_results=max_results))
+        else:
+            logger.warning("PubMed fetcher not available")
+
+    # bioRxiv / medRxiv
+    if sources.get("biorxiv", {}).get("enabled", False):
+        if BioRxivFetcher:
+            logger.info("Fetching from bioRxiv/medRxiv...")
+            bio_config = sources["biorxiv"]
+            fetcher = BioRxivFetcher(
+                servers=bio_config.get("servers", ["biorxiv", "medrxiv"]),
+                subjects=bio_config.get("subjects", [])
+            )
+            papers.extend(fetcher.fetch(days_back=days_back, max_results=max_results))
+        else:
+            logger.warning("bioRxiv fetcher not available")
 
     logger.info(f"Total papers fetched: {len(papers)}")
     return papers
