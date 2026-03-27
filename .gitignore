@@ -1,7 +1,6 @@
 __pycache__/
 *.pyc
 .env
-config.yaml
 data/preview.html
 .vscode/
 .idea/
