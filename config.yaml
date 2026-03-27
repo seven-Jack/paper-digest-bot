@@ -1,11 +1,14 @@
 # Paper Digest Bot Configuration
 # Auto-generated on 2026-03-27
 
-ai_provider: gemini
+ai_provider: groq
+
+fetch:
+  days_back: 7 
 
 email:
   language: zh
-  max_papers: 20
+  max_papers: 30
 
 sources:
   arxiv:
@@ -18,6 +21,11 @@ sources:
     journals:
       - prl
       - pra
+      - prb
+      - prc
+      - prr
+      - prx
+      - prd
   nature:
     enabled: true
     journals:
