@@ -31,16 +31,20 @@ def fetch_papers(config: dict) -> list[dict]:
     """Fetch papers from all enabled sources."""
     papers = []
     sources = config.get("sources", {})
+    
+    # 从配置中读取 days_back，默认为 2 天
+    days_back = config.get("fetch", {}).get("days_back", 2)
+    logger.info(f"Fetching papers from the last {days_back} days...")
 
     if sources.get("arxiv", {}).get("enabled", False):
         logger.info("Fetching from arXiv...")
         fetcher = ArxivFetcher(sources["arxiv"].get("categories", []))
-        papers.extend(fetcher.fetch())
+        papers.extend(fetcher.fetch(days_back=days_back))
 
     if sources.get("aps", {}).get("enabled", False):
         logger.info("Fetching from APS journals...")
         fetcher = APSFetcher(sources["aps"].get("journals", []))
-        papers.extend(fetcher.fetch())
+        papers.extend(fetcher.fetch(days_back=days_back))
 
     # Nature and Science fetchers can be added by the community
     # following the same pattern as ArxivFetcher
