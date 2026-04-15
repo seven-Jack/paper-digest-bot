@@ -27,6 +27,22 @@ class AnalyzerBase(ABC):
         title = paper.get("title", "N/A")
         abstract = paper.get("abstract", "N/A")
         keywords = ", ".join(paper.get("matched_keywords", []))
+        content = paper.get("content", "").strip()
+        content_source = paper.get("content_source", "paper")
+
+        if content:
+            if language == "zh":
+                content_block = (
+                    f"正文节选（来自{content_source}，可能已截断）：{content}\n\n"
+                    f"请优先依据正文节选进行分析，若正文不完整再参考摘要。\n\n"
+                )
+            else:
+                content_block = (
+                    f"Extracted paper content (from {content_source}, may be truncated): {content}\n\n"
+                    f"Prioritize this extracted content when analyzing, and use the abstract as backup context.\n\n"
+                )
+        else:
+            content_block = ""
 
         if language == "zh":
             return (
@@ -36,6 +52,7 @@ class AnalyzerBase(ABC):
                 f"3. 与以下关键词的相关性说明：{keywords}\n\n"
                 f"标题：{title}\n"
                 f"摘要：{abstract}\n\n"
+                f"{content_block}"
                 f"请用3-5句话简洁回答，不要使用markdown格式。"
             )
         else:
@@ -47,6 +64,7 @@ class AnalyzerBase(ABC):
                 f"3. Relevance to these keywords: {keywords}\n\n"
                 f"Title: {title}\n"
                 f"Abstract: {abstract}\n\n"
+                f"{content_block}"
                 f"Reply in 3-5 concise sentences, no markdown."
             )
 

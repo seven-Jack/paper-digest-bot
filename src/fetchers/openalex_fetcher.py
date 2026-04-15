@@ -98,7 +98,7 @@ class OpenAlexFetcher:
             "filter": f"concepts.id:{concept_id},from_publication_date:{from_date}",
             "sort": "publication_date:desc",
             "per_page": min(per_page, 200),
-            "select": "id,doi,title,abstract_inverted_index,authorships,publication_date,primary_location,cited_by_count",
+            "select": "id,doi,title,abstract_inverted_index,authorships,publication_date,primary_location,best_oa_location,cited_by_count",
         }
         
         return self._fetch_works(url, params)
@@ -111,7 +111,7 @@ class OpenAlexFetcher:
             "filter": f"from_publication_date:{from_date}",
             "sort": "publication_date:desc",
             "per_page": min(per_page, 200),
-            "select": "id,doi,title,abstract_inverted_index,authorships,publication_date,primary_location,cited_by_count",
+            "select": "id,doi,title,abstract_inverted_index,authorships,publication_date,primary_location,best_oa_location,cited_by_count",
         }
         
         return self._fetch_works(url, params)
@@ -158,7 +158,13 @@ class OpenAlexFetcher:
         
         # 构建 URL
         primary_location = item.get("primary_location", {}) or {}
+        best_oa_location = item.get("best_oa_location", {}) or {}
         landing_page_url = primary_location.get("landing_page_url")
+        pdf_url = (
+            primary_location.get("pdf_url")
+            or best_oa_location.get("pdf_url")
+            or best_oa_location.get("landing_page_url")
+        )
         
         if doi:
             url = f"https://doi.org/{doi}"
@@ -192,6 +198,7 @@ class OpenAlexFetcher:
             "doi": doi,
             "venue": venue,
             "citation_count": item.get("cited_by_count", 0),
+            "pdf_url": pdf_url,
         }
     
     def _reconstruct_abstract(self, inverted_index: dict) -> str:

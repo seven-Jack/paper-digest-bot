@@ -77,7 +77,7 @@ class SemanticScholarFetcher:
         params = {
             "query": keyword,
             "limit": min(limit, 100),  # API 限制
-            "fields": "paperId,title,abstract,authors,year,venue,publicationDate,externalIds,url,citationCount",
+            "fields": "paperId,title,abstract,authors,year,venue,publicationDate,externalIds,url,citationCount,openAccessPdf",
             "fieldsOfStudy": ",".join(self.fields_of_study) if self.fields_of_study else None,
         }
         
@@ -120,6 +120,7 @@ class SemanticScholarFetcher:
         external_ids = item.get("externalIds", {})
         doi = external_ids.get("DOI")
         arxiv_id = external_ids.get("ArXiv")
+        open_access_pdf = (item.get("openAccessPdf") or {}).get("url")
         
         # 构建 URL
         if doi:
@@ -150,4 +151,5 @@ class SemanticScholarFetcher:
             "doi": doi,
             "venue": item.get("venue", ""),
             "citation_count": item.get("citationCount", 0),
+            "pdf_url": open_access_pdf,
         }

@@ -140,4 +140,5 @@ class BioRxivFetcher:
             "venue": server.capitalize(),
             "category": item.get("category", ""),
             "version": item.get("version", "1"),
+            "pdf_url": f"https://www.{server}.org/content/{doi}v{item.get('version', '1')}.full.pdf",
         }

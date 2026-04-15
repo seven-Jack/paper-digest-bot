@@ -27,6 +27,12 @@ def _default_config() -> dict:
             "max_papers": 20,
             "schedule_utc": "00:00",
         },
+        "content_extraction": {
+            "enabled": True,
+            "max_chars": 12000,
+            "max_pdf_pages": 4,
+            "timeout_seconds": 30,
+        },
         "sources": {
             "arxiv": {"enabled": True, "categories": ["physics.atom-ph", "quant-ph"]},
             "aps": {"enabled": True, "journals": ["prl", "pra"]},

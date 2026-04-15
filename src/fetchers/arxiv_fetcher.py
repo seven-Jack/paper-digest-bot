@@ -68,12 +68,16 @@ class ArxivFetcher:
                 "source": "arxiv",
                 "category": category,
                 "doi": "",
+                "pdf_url": "",
             }
 
             # Try to get DOI
             doi_elem = entry.find("arxiv:doi", ns)
             if doi_elem is not None and doi_elem.text:
                 paper["doi"] = doi_elem.text
+
+            if paper["id"]:
+                paper["pdf_url"] = f"https://arxiv.org/pdf/{paper['id']}.pdf"
 
             papers.append(paper)
 

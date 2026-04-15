@@ -17,6 +17,7 @@ from src.fetchers.arxiv_fetcher import ArxivFetcher
 from src.fetchers.aps_fetcher import APSFetcher
 from src.weight_manager import WeightManager
 from src.analyzer import get_analyzer
+from src.content_extractor import PaperContentExtractor
 from src.email_builder import EmailBuilder
 from src.email_sender import send_email
 from src.config_loader import load_config
@@ -77,6 +78,12 @@ def fetch_papers(config: dict) -> list[dict]:
         logger.info("Fetching from APS journals...")
         fetcher = APSFetcher(sources["aps"].get("journals", []))
         papers.extend(fetcher.fetch(days_back=days_back))
+
+    if sources.get("nature", {}).get("enabled", False):
+        logger.warning("Nature source is enabled in config, but no Nature fetcher is implemented yet. Skipping.")
+
+    if sources.get("science", {}).get("enabled", False):
+        logger.warning("Science source is enabled in config, but no Science fetcher is implemented yet. Skipping.")
 
     # Semantic Scholar
     if sources.get("semantic_scholar", {}).get("enabled", False):
@@ -248,7 +255,7 @@ def deduplicate(papers: list[dict], cache_path: str) -> list[dict]:
 
 
 def analyze_papers(papers: list[dict], config: dict) -> list[dict]:
-    """Use AI to analyze each paper's abstract."""
+    """Use AI to analyze each paper using abstract plus extracted content when available."""
     provider = config.get("ai_provider", "gemini")
     language = config.get("email", {}).get("language", "en")
 
@@ -259,9 +266,12 @@ def analyze_papers(papers: list[dict], config: dict) -> list[dict]:
             p["ai_summary"] = "（AI 分析未配置）" if language == "zh" else "(AI analysis not configured)"
         return papers
 
+    extractor = PaperContentExtractor(config.get("content_extraction", {}))
+
     for i, paper in enumerate(papers):
         logger.info(f"Analyzing paper {i+1}/{len(papers)}: {paper.get('title', '')[:60]}...")
         try:
+            extractor.enrich_paper(paper)
             paper["ai_summary"] = analyzer.analyze(paper, language)
         except Exception as e:
             logger.error(f"Analysis failed for paper {paper.get('id')}: {e}")

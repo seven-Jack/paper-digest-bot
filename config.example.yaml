@@ -15,6 +15,13 @@ email:
   language: zh              # zh = Chinese, en = English
   max_papers: 20            # Max papers to include in digest email
 
+# Best-effort content extraction before AI analysis
+content_extraction:
+  enabled: true
+  max_chars: 12000          # Truncate extracted text before sending to the model
+  max_pdf_pages: 4          # Only read the first few PDF pages for speed
+  timeout_seconds: 30
+
 # Paper sources - enable the ones you need
 sources:
   # === Preprint Servers ===
