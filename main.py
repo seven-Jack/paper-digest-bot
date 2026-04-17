@@ -258,15 +258,15 @@ def analyze_papers(papers: list[dict], config: dict) -> list[dict]:
     """Use AI to analyze each paper using abstract plus extracted content when available."""
     provider = config.get("ai_provider", "gemini")
     language = config.get("email", {}).get("language", "en")
+    extractor = PaperContentExtractor(config.get("content_extraction", {}))
 
     analyzer = get_analyzer(provider)
     if analyzer is None:
         logger.warning(f"AI provider '{provider}' not configured, skipping analysis.")
         for p in papers:
+            extractor.enrich_paper(p)
             p["ai_summary"] = "（AI 分析未配置）" if language == "zh" else "(AI analysis not configured)"
         return papers
-
-    extractor = PaperContentExtractor(config.get("content_extraction", {}))
 
     for i, paper in enumerate(papers):
         logger.info(f"Analyzing paper {i+1}/{len(papers)}: {paper.get('title', '')[:60]}...")

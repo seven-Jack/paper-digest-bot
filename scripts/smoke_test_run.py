@@ -14,6 +14,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from main import analyze_papers, fetch_papers
+from src.analyzer import get_analyzer
 from src.config_loader import load_config
 
 
@@ -48,7 +49,11 @@ def build_smoke_config() -> dict:
         "nature": {"enabled": False, "journals": []},
         "science": {"enabled": False, "journals": []},
         "semantic_scholar": {"enabled": False},
-        "openalex": {"enabled": False},
+        "openalex": {
+            "enabled": True,
+            "concepts": [],
+            "keywords": ["ultracold atoms", "atomic physics"],
+        },
         "crossref": {"enabled": False},
         "pubmed": {"enabled": False},
         "biorxiv": {"enabled": False},
@@ -88,7 +93,18 @@ def validate_results(papers: list[dict], expect_real_ai: bool):
 def main():
     config = build_smoke_config()
     papers = fetch_papers(config)[:2]
+    require_real_ai = os.environ.get("SMOKE_TEST_REQUIRE_REAL_AI", "").lower() in {"1", "true", "yes"}
     use_stub = os.environ.get("SMOKE_TEST_USE_STUB", "").lower() in {"1", "true", "yes"}
+
+    if not use_stub:
+        provider = config.get("ai_provider", "gemini")
+        analyzer = get_analyzer(provider)
+        if analyzer is None and not require_real_ai:
+            print(
+                f"::warning file=scripts/smoke_test_run.py,line=1::"
+                f"AI provider '{provider}' is not configured in this environment. Falling back to stub analysis."
+            )
+            use_stub = True
 
     if use_stub:
         with patch("main.get_analyzer", return_value=StubAnalyzer()):
@@ -116,4 +132,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:
+        print(f"::error file=scripts/smoke_test_run.py,line=1::{exc}")
+        raise

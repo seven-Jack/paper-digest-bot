@@ -125,6 +125,29 @@ class AnalyzePapersIntegrationTests(unittest.TestCase):
         self.assertEqual(papers[0]["ai_summary"], "ok")
         self.assertEqual(analyzer.seen_content, [("Expanded body", "en")])
 
+    def test_analyze_papers_still_extracts_content_when_ai_is_unconfigured(self):
+        class StubExtractor:
+            def __init__(self, _config):
+                pass
+
+            def enrich_paper(self, paper):
+                paper["content"] = "Expanded body without AI"
+                paper["content_source"] = "pdf"
+                return paper
+
+        config = {
+            "ai_provider": "gemini",
+            "email": {"language": "en"},
+            "content_extraction": {"enabled": True},
+        }
+
+        with patch("main.get_analyzer", return_value=None), patch("main.PaperContentExtractor", StubExtractor):
+            papers = analyze_papers([{"id": "p2", "title": "Demo", "abstract": "Short"}], config)
+
+        self.assertEqual(papers[0]["content"], "Expanded body without AI")
+        self.assertEqual(papers[0]["content_source"], "pdf")
+        self.assertEqual(papers[0]["ai_summary"], "(AI analysis not configured)")
+
 
 if __name__ == "__main__":
     unittest.main()
