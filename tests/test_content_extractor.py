@@ -119,7 +119,7 @@ class AnalyzePapersIntegrationTests(unittest.TestCase):
             "content_extraction": {"enabled": True},
         }
 
-        with patch("main.get_analyzer", return_value=analyzer), patch("main.PaperContentExtractor", StubExtractor):
+        with patch("main.get_analyzers", return_value=[("gemini", analyzer)]), patch("main.PaperContentExtractor", StubExtractor):
             papers = analyze_papers([{"id": "p1", "title": "Demo", "abstract": "Short"}], config)
 
         self.assertEqual(papers[0]["ai_summary"], "ok")
@@ -141,12 +141,44 @@ class AnalyzePapersIntegrationTests(unittest.TestCase):
             "content_extraction": {"enabled": True},
         }
 
-        with patch("main.get_analyzer", return_value=None), patch("main.PaperContentExtractor", StubExtractor):
+        with patch("main.get_analyzers", return_value=[]), patch("main.PaperContentExtractor", StubExtractor):
             papers = analyze_papers([{"id": "p2", "title": "Demo", "abstract": "Short"}], config)
 
         self.assertEqual(papers[0]["content"], "Expanded body without AI")
         self.assertEqual(papers[0]["content_source"], "pdf")
         self.assertEqual(papers[0]["ai_summary"], "(AI analysis not configured)")
+
+    def test_analyze_papers_falls_back_to_secondary_provider(self):
+        class FailingAnalyzer:
+            def analyze(self, paper, language="en"):
+                raise RuntimeError("primary provider failed")
+
+        class WorkingAnalyzer:
+            def analyze(self, paper, language="en"):
+                return "fallback ok"
+
+        class StubExtractor:
+            def __init__(self, _config):
+                pass
+
+            def enrich_paper(self, paper):
+                paper["content"] = "Expanded body"
+                paper["content_source"] = "pdf"
+                return paper
+
+        config = {
+            "ai_provider": "gemini",
+            "email": {"language": "en"},
+            "content_extraction": {"enabled": True},
+        }
+
+        with patch(
+            "main.get_analyzers",
+            return_value=[("gemini", FailingAnalyzer()), ("openai", WorkingAnalyzer())],
+        ), patch("main.PaperContentExtractor", StubExtractor):
+            papers = analyze_papers([{"id": "p3", "title": "Demo", "abstract": "Short"}], config)
+
+        self.assertEqual(papers[0]["ai_summary"], "fallback ok")
 
 
 if __name__ == "__main__":

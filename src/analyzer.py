@@ -475,6 +475,19 @@ def get_analyzer(provider: str) -> AnalyzerBase | None:
     return _PROVIDERS[provider]()
 
 
+def get_analyzers(preferred_provider: str) -> list[tuple[str, AnalyzerBase]]:
+    """Get all configured analyzers, prioritizing the preferred provider first."""
+    preferred_provider = preferred_provider.lower().strip()
+    ordered = [preferred_provider] + [p for p in _PROVIDERS if p != preferred_provider]
+
+    analyzers = []
+    for provider in ordered:
+        analyzer = get_analyzer(provider)
+        if analyzer is not None:
+            analyzers.append((provider, analyzer))
+    return analyzers
+
+
 def list_providers() -> dict:
     """List all available providers with their API key requirements."""
     return {

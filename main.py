@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from src.fetchers.arxiv_fetcher import ArxivFetcher
 from src.fetchers.aps_fetcher import APSFetcher
 from src.weight_manager import WeightManager
-from src.analyzer import get_analyzer
+from src.analyzer import get_analyzers
 from src.content_extractor import PaperContentExtractor
 from src.email_builder import EmailBuilder
 from src.email_sender import send_email
@@ -260,8 +260,8 @@ def analyze_papers(papers: list[dict], config: dict) -> list[dict]:
     language = config.get("email", {}).get("language", "en")
     extractor = PaperContentExtractor(config.get("content_extraction", {}))
 
-    analyzer = get_analyzer(provider)
-    if analyzer is None:
+    analyzers = get_analyzers(provider)
+    if not analyzers:
         logger.warning(f"AI provider '{provider}' not configured, skipping analysis.")
         for p in papers:
             extractor.enrich_paper(p)
@@ -270,11 +270,30 @@ def analyze_papers(papers: list[dict], config: dict) -> list[dict]:
 
     for i, paper in enumerate(papers):
         logger.info(f"Analyzing paper {i+1}/{len(papers)}: {paper.get('title', '')[:60]}...")
-        try:
-            extractor.enrich_paper(paper)
-            paper["ai_summary"] = analyzer.analyze(paper, language)
-        except Exception as e:
-            logger.error(f"Analysis failed for paper {paper.get('id')}: {e}")
+        extractor.enrich_paper(paper)
+        analysis_succeeded = False
+
+        for provider_name, analyzer in analyzers:
+            try:
+                paper["ai_summary"] = analyzer.analyze(paper, language)
+                if provider_name != provider:
+                    logger.warning(
+                        "Primary AI provider '%s' unavailable, used fallback provider '%s' for paper %s",
+                        provider,
+                        provider_name,
+                        paper.get("id"),
+                    )
+                analysis_succeeded = True
+                break
+            except Exception as e:
+                logger.error(
+                    "Analysis failed with provider '%s' for paper %s: %s",
+                    provider_name,
+                    paper.get("id"),
+                    e,
+                )
+
+        if not analysis_succeeded:
             paper["ai_summary"] = "（分析失败）" if language == "zh" else "(Analysis failed)"
 
     return papers
