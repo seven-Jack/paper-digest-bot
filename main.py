@@ -272,10 +272,13 @@ def analyze_papers(papers: list[dict], config: dict) -> list[dict]:
         logger.info(f"Analyzing paper {i+1}/{len(papers)}: {paper.get('title', '')[:60]}...")
         extractor.enrich_paper(paper)
         analysis_succeeded = False
+        provider_failures = {}
 
         for provider_name, analyzer in analyzers:
             try:
                 paper["ai_summary"] = analyzer.analyze(paper, language)
+                paper["ai_provider_used"] = provider_name
+                paper["ai_provider_failures"] = provider_failures
                 if provider_name != provider:
                     logger.warning(
                         "Primary AI provider '%s' unavailable, used fallback provider '%s' for paper %s",
@@ -286,6 +289,7 @@ def analyze_papers(papers: list[dict], config: dict) -> list[dict]:
                 analysis_succeeded = True
                 break
             except Exception as e:
+                provider_failures[provider_name] = str(e)
                 logger.error(
                     "Analysis failed with provider '%s' for paper %s: %s",
                     provider_name,
@@ -294,6 +298,7 @@ def analyze_papers(papers: list[dict], config: dict) -> list[dict]:
                 )
 
         if not analysis_succeeded:
+            paper["ai_provider_failures"] = provider_failures
             paper["ai_summary"] = "（分析失败）" if language == "zh" else "(Analysis failed)"
 
     return papers

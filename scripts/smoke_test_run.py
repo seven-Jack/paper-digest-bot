@@ -87,7 +87,20 @@ def validate_results(papers: list[dict], expect_real_ai: bool):
             }
         ]
         if not ai_ok:
-            raise RuntimeError("Smoke test parsed paper content, but AI analysis did not succeed.")
+            failures = []
+            for paper in papers:
+                provider_failures = paper.get("ai_provider_failures") or {}
+                if provider_failures:
+                    failures.append(
+                        {
+                            "id": paper.get("id"),
+                            "providers": provider_failures,
+                        }
+                    )
+            raise RuntimeError(
+                "Smoke test parsed paper content, but AI analysis did not succeed. "
+                f"Provider failures: {json.dumps(failures, ensure_ascii=False)}"
+            )
 
 
 def main():
@@ -123,6 +136,8 @@ def main():
                 "title": p.get("title"),
                 "content_source": p.get("content_source", "missing"),
                 "content_len": len(p.get("content", "")),
+                "ai_provider_used": p.get("ai_provider_used"),
+                "ai_provider_failures": p.get("ai_provider_failures", {}),
                 "ai_summary": p.get("ai_summary", "")[:200],
             }
             for p in papers
