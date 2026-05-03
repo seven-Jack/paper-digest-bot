@@ -34,70 +34,70 @@
   },
   "keywords": {
     "isotope shifts": {
-      "weight": 0.5485568420271377,
+      "weight": 0.5430712736068664,
       "category": "abstract_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "hyperfine structure": {
-      "weight": 0.5485568420271377,
+      "weight": 0.5430712736068664,
       "category": "abstract_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "electron correlation": {
-      "weight": 0.5485568420271377,
+      "weight": 0.5430712736068664,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "relativistic calculation": {
-      "weight": 0.5485568420271377,
+      "weight": 0.5430712736068664,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "optical clock": {
-      "weight": 0.5485568420271377,
+      "weight": 0.5430712736068664,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "highly charged ions": {
-      "weight": 0.5485568420271377,
+      "weight": 0.5430712736068664,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "coupled-cluster": {
-      "weight": 0.5485568420271377,
+      "weight": 0.5430712736068664,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "polarizabilities": {
-      "weight": 0.5485568420271377,
+      "weight": 0.5430712736068664,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "polarizability": {
-      "weight": 0.5485568420271377,
+      "weight": 0.5430712736068664,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
       "last_matched": null
     },
     "dipole polarizability": {
-      "weight": 0.5485568420271377,
+      "weight": 0.5430712736068664,
       "category": "title_term",
       "source": "doi_bootstrap",
       "votes": [],
@@ -107,7 +107,7 @@
   "stats": {
     "total_votes": 0,
     "votes_by_type": {},
-    "last_updated": "2026-05-02T01:22:06.024541+00:00"
+    "last_updated": "2026-05-03T01:25:34.675133+00:00"
   },
   "deactivated_keywords": []
 }
